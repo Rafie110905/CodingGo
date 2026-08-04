@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar - CodingGo</title>
+    <title>Masuk - CodingGo</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -31,7 +31,7 @@
         a { text-decoration: none; color: inherit; }
         button { cursor: pointer; border: none; font-family: inherit; }
 
-        /* Navbar & Footer exact matches from index.php */
+        /* Navbar & Footer */
         .navbar { padding: 1.5rem 0; background: var(--bg-main); border-bottom: 1px solid var(--border); }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
         .navbar .container { display: flex; justify-content: space-between; align-items: center; }
@@ -51,7 +51,7 @@
         body.dark-mode .theme-toggle { background: #1e293b; border-color: #334155; flex-direction: row-reverse; padding: 4px 12px 4px 6px; }
         body.dark-mode .theme-text { color: #e2e8f0; }
         
-        /* Register Section */
+        /* Register Section (Used for Login too) */
         .register-container {
             display: flex;
             max-width: 1100px;
@@ -102,12 +102,12 @@
         .register-left p {
             color: var(--text-muted);
             font-size: 1rem;
-            max-width: 50%;
+            max-width: 80%;
             margin-bottom: 2rem;
         }
 
         .illustration {
-            margin-top: 100px;
+            margin-top: auto;
             position: relative;
             display: flex;
             justify-content: center;
@@ -305,7 +305,7 @@
         </div>
     </nav>
 
-    <!-- Main Register Content -->
+    <!-- Main Content -->
     <div class="container">
         <div class="register-container">
             <!-- Left Side -->
@@ -343,17 +343,10 @@
                 <div class="lock-icon-top">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:24px; height:24px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                 </div>
-                <h2>Akun Baru <span style="color:var(--primary);">CodingGo</span></h2>
-                <p class="subtitle">Isi data sebelum memulai pengalaman belajar</p>
+                <h2>Masuk ke <span style="color:var(--primary);">CodingGo</span></h2>
+                <p class="subtitle">Gunakan akunmu untuk masuk</p>
 
                 <form style="width: 100%;">
-                    <div class="form-group">
-                        <label>Nama Lengkap</label>
-                        <div class="input-wrapper">
-                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                            <input type="text" placeholder="Masukkan Nama Lengkap kamu">
-                        </div>
-                    </div>
                     <div class="form-group">
                         <label>Email</label>
                         <div class="input-wrapper">
@@ -377,18 +370,18 @@
                         <a href="#" class="forgot-link">Lupa password?</a>
                     </div>
 
-                    <button type="button" class="btn btn-primary btn-full">Daftar Sekarang</button>
+                    <button type="button" class="btn btn-primary btn-full">Masuk</button>
                     
                     <div class="divider">ATAU</div>
                     
                     <button type="button" class="btn-google">
                         <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                        Daftar dengan Google
+                        Masuk dengan Google
                     </button>
                 </form>
 
                 <div class="bottom-text">
-                    Sudah punya akun? <a href="#">Masuk sekarang</a>
+                    Belum punya akun? <a href="register.php">Daftar sekarang</a>
                 </div>
             </div>
         </div>

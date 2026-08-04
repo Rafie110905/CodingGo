@@ -40,7 +40,7 @@
                         </svg>
                     </div>
                 </button>
-                <a href="#" class="login-link">Masuk</a>
+                <a href="login.php" class="login-link">Masuk</a>
                 <a href="register.php" class="btn btn-primary">Daftar</a>
             </div>
         </div>
