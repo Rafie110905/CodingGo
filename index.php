@@ -41,7 +41,7 @@
                     </div>
                 </button>
                 <a href="#" class="login-link">Masuk</a>
-                <a href="#" class="btn btn-primary">Daftar</a>
+                <a href="register.php" class="btn btn-primary">Daftar</a>
             </div>
         </div>
     </nav>
