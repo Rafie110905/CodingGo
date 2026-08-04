@@ -4,11 +4,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CodingQa - Belajar Coding Lebih Mudah</title>
+    <title>CodingGo - Belajar Coding Lebih Mudah</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="src/css/index.css">
+    <style>
+.footer > .container:first-of-type {
+            position: relative;
+        }
+
+        .footer-social {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+        }
+         @media (max-width: 640px) {
+            .footer-social {
+                position: static;
+                transform: none;
+                margin: 12px 0;
+            }
+        }
+    </style> 
+    
 </head>
 
 <body>
@@ -17,8 +37,8 @@
     <nav class="navbar">
         <div class="container">
             <a href="#" class="logo">
-                <div class="logo-icon">CQ</div>
-                CodingQa
+                <div class="logo-icon">CG</div>
+                CodingGo
             </a>
 
             <div class="nav-links">
@@ -118,7 +138,7 @@
                         <div class="dot dot-red"></div>
                         <div class="dot dot-yellow"></div>
                         <div class="dot dot-green"></div>
-                        <div class="code-editor-title">index.php - CodingQa</div>
+                        <div class="code-editor-title">index.php - CodingGo</div>
                     </div>
                     <div class="code-content">
                         <span class="token comment">&lt;!-- Platform Pembelajaran --&gt;</span><br>
@@ -269,7 +289,7 @@
                     </div>
                     <div class="cta-text">
                         <h2>Siap Menjadi Programmer Profesional?</h2>
-                        <p>Tingkatkan skill codingmu dan mulai karir suksesmu bersama CodingQa hari ini juga.</p>
+                        <p>Tingkatkan skill codingmu dan mulai karir suksesmu bersama CodingGo hari ini juga.</p>
                     </div>
                 </div>
                 <a href="#" class="btn btn-white" style="flex-shrink: 0;">
@@ -287,13 +307,18 @@
         <div class="container">
             <div>
                 <div class="footer-logo">
-                    <div class="logo-icon">CQ</div>
-                    CodingQa
+                    <div class="logo-icon">CG</div>
+                    CodingGo
                 </div>
                 <p class="footer-desc">Platform pembelajaran digital yang aman dan inovatif untuk membantu mengembangkan skill coding dan karir impianmu.</p>
             </div>
-
+            
             <div class="footer-social">
+                <a href="#" class="social-icon" aria-label="Facebook">
+        <svg fill="currentColor" viewBox="0 0 24 24" width="20" height="20">
+            <path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z" />
+        </svg>
+    </a>
                 <a href="#" class="social-icon">
                     <svg fill="currentColor" viewBox="0 0 24 24" width="20" height="20">
                         <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
@@ -312,14 +337,18 @@
             </div>
         </div>
         <div class="container footer-bottom">
-            <div>&copy; <?php echo date('Y'); ?> CodingQa. All rights reserved.</div>
-            <div class="footer-lang">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Indonesia
-            </div>
-        </div>
+    <div>&copy; <?php echo date('Y'); ?> CodingGo. All rights reserved.</div>
+    <div class="footer-lang">
+        <svg class="flag-icon" viewBox="0 0 3 2" width="16" height="16" style="border-radius:2px;flex-shrink:0">
+            <rect width="3" height="1" y="0" fill="#e70011" />
+            <rect width="3" height="1" y="1" fill="#ffffff" />
+        </svg>
+        Indonesia
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:12px;height:12px">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+    </div>
+</div>
     </footer>
 
     <script>
