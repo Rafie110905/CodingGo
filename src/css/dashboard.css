@@ -1,0 +1,263 @@
+/* Dashboard Global Variables */
+:root {
+    --dash-primary: #4361ee;
+    --dash-secondary: #3f37c9;
+    --dash-bg: #f8f9fa;
+    --dash-sidebar: #ffffff;
+    --dash-text: #2b2d42;
+    --dash-text-muted: #8d99ae;
+    --dash-border: #edf2f4;
+    --dash-success: #4cc9f0;
+    --dash-warning: #f72585;
+    --dash-white: #ffffff;
+}
+
+body.dark-mode {
+    --dash-bg: #121212;
+    --dash-sidebar: #1e1e1e;
+    --dash-text: #e0e0e0;
+    --dash-text-muted: #888888;
+    --dash-border: #333333;
+}
+
+/* Layout */
+.dashboard-layout {
+    display: flex;
+    height: 100vh;
+    background: var(--dash-bg);
+    overflow: hidden;
+}
+
+/* Sidebar */
+.dash-sidebar {
+    width: 260px;
+    background: var(--dash-sidebar);
+    border-right: 1px solid var(--dash-border);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 1rem;
+    flex-shrink: 0;
+    overflow-y: auto;
+}
+
+.dash-sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--dash-text);
+    margin-bottom: 2rem;
+    padding-left: 0.5rem;
+}
+
+.dash-nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.dash-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    color: var(--dash-text-muted);
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.dash-nav-item:hover, .dash-nav-item.active {
+    background: rgba(67, 97, 238, 0.08);
+    color: var(--dash-primary);
+}
+
+.dash-nav-item.active {
+    font-weight: 600;
+}
+
+/* Main Content Area */
+.main-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+/* Topbar */
+.dash-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 2rem;
+    background: var(--dash-bg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.dash-search-box {
+    display: flex;
+    align-items: center;
+    background: var(--dash-sidebar);
+    border: 1px solid var(--dash-border);
+    border-radius: 99px;
+    padding: 0.5rem 1.5rem;
+    width: 400px;
+}
+
+.dash-search-box input {
+    border: none;
+    background: transparent;
+    outline: none;
+    width: 100%;
+    color: var(--dash-text);
+    padding-left: 8px;
+}
+
+.dash-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.dash-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--dash-sidebar);
+    padding: 0.5rem;
+    padding-right: 1rem;
+    border-radius: 99px;
+    border: 1px solid var(--dash-border);
+}
+
+.dash-profile img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+}
+
+.dash-profile-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.dash-profile-name { font-weight: 600; font-size: 0.9rem; color: var(--dash-text); }
+.dash-profile-role { font-size: 0.75rem; color: var(--dash-text-muted); }
+
+/* Dashboard Content Grid */
+.main-content {
+    padding: 0 2rem 2rem 2rem;
+    display: grid;
+    grid-template-columns: 2.5fr 1fr;
+    gap: 2rem;
+}
+
+.dash-welcome {
+    margin-bottom: 2rem;
+}
+
+.dash-welcome h1 {
+    font-size: 1.75rem;
+    color: var(--dash-text);
+    margin-bottom: 0.25rem;
+}
+
+.dash-welcome p {
+    color: var(--dash-text-muted);
+}
+
+/* Stats Row */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+}
+
+.stat-card {
+    background: var(--dash-sidebar);
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid var(--dash-border);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.stat-val { font-size: 1.5rem; font-weight: 700; color: var(--dash-text); }
+.stat-label { font-size: 0.85rem; color: var(--dash-text-muted); }
+
+/* Courses Grid */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.section-header h2 { font-size: 1.1rem; color: var(--dash-text); }
+.section-header a { font-size: 0.85rem; color: var(--dash-primary); text-decoration: none; font-weight: 500; }
+
+.courses-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+}
+
+.course-card {
+    background: var(--dash-sidebar);
+    border-radius: 16px;
+    border: 1px solid var(--dash-border);
+    overflow: hidden;
+    transition: transform 0.2s ease;
+}
+
+.course-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+.course-img {
+    height: 120px;
+    background: linear-gradient(135deg, #111 0%, #333 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 800;
+    font-size: 2rem;
+}
+
+.course-body { padding: 1rem; }
+.course-tag { display: inline-block; padding: 4px 8px; background: rgba(67, 97, 238, 0.1); color: var(--dash-primary); border-radius: 4px; font-size: 0.7rem; font-weight: 600; margin-bottom: 8px; }
+.course-title { font-weight: 600; color: var(--dash-text); font-size: 0.95rem; margin-bottom: 0.5rem; }
+.course-desc { font-size: 0.8rem; color: var(--dash-text-muted); margin-bottom: 1rem; }
+
+/* Progress Bar */
+.progress-wrap { width: 100%; background: var(--dash-border); border-radius: 99px; height: 6px; overflow: hidden; }
+.progress-bar { height: 100%; background: var(--dash-primary); border-radius: 99px; }
+.progress-text { display: flex; justify-content: flex-end; font-size: 0.75rem; color: var(--dash-text-muted); margin-top: 4px; font-weight: 600; }
+
+/* Right Sidebar (Widgets) */
+.widget-card {
+    background: var(--dash-sidebar);
+    border-radius: 16px;
+    border: 1px solid var(--dash-border);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.widget-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--dash-text);
+    margin-bottom: 1.5rem;
+}
