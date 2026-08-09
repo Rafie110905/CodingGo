@@ -101,7 +101,7 @@ if ($is_logged_in) {
                     <button disabled style="background: var(--bg-hover); color: var(--text-muted); border: 1px solid var(--border-color); padding: 1rem 2rem; border-radius: 12px; font-weight: 600; font-size: 1.1rem; cursor: not-allowed;">Materi Belum Tersedia</button>
                 <?php endif; ?>
             <?php else: ?>
-                <a href="index.php?page=login" style="background: <?php echo $theme_color; ?>; color: white; border: none; padding: 1rem 2rem; border-radius: 12px; font-weight: 600; font-size: 1.1rem; text-decoration: none; display: inline-block; box-shadow: 0 4px 15px <?php echo $theme_color; ?>60;">
+                <a href="login.php" style="background: <?php echo $theme_color; ?>; color: white; border: none; padding: 1rem 2rem; border-radius: 12px; font-weight: 600; font-size: 1.1rem; text-decoration: none; display: inline-block; box-shadow: 0 4px 15px <?php echo $theme_color; ?>60;">
                     Masuk untuk Mulai Belajar
                 </a>
             <?php endif; ?>

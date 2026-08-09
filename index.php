@@ -27,7 +27,7 @@ if ($is_maintenance && $user_role !== 'admin') {
 }
 
 // Routing map
-$public_pages = ['landing', 'setup_profile', 'maintenance', 'course_detail', 'course_learn', 'course_exam'];
+$public_pages = ['landing', 'setup_profile', 'maintenance', 'course_detail', 'course_learn', 'course_exam', 'certificate_view'];
 $dashboard_pages = [
     'dashboard', 
     'course_list',
@@ -37,6 +37,8 @@ $dashboard_pages = [
     'community_post',
     'community_edit',
     'leaderboard',
+    'champions',
+    'sertifikat',
     'admin_users',
     'admin_user_detail',
     'admin_settings', 

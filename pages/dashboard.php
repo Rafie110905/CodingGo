@@ -8,7 +8,7 @@ $user_db = $stmt->fetch();
 
 if (!$user_db) {
     // Fallback jika tidak ada di DB (harus login lagi)
-    header('Location: index.php?page=login');
+    header('Location: login.php');
     exit();
 }
 
