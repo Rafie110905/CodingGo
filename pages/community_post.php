@@ -90,22 +90,33 @@ $replies = $stmt_rep->fetchAll();
     <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem;">
         <div style="display:flex; gap:1.5rem; align-items:flex-start; margin-bottom:1.5rem; padding-bottom:1.5rem; border-bottom:1px solid var(--dash-border);">
             <div style="flex-shrink:0;">
-                <?php if (!empty($post['picture'])): ?>
-                    <img src="<?php echo htmlspecialchars($post['picture']); ?>" alt="Profile" style="width: 60px; height: 60px; border-radius: 50%; border:3px solid <?php echo $p_border; ?>; object-fit:cover;">
-                <?php else: ?>
-                    <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--dash-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; border:3px solid <?php echo $p_border; ?>;">
-                        <?php echo substr(htmlspecialchars($post['name']), 0, 1); ?>
+                <?php if($post['is_official']): ?>
+                    <div style="width: 60px; height: 60px; border-radius: 12px; background: var(--dash-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: bold; border:3px solid rgba(59, 130, 246, 0.3); font-family: sans-serif;">
+                        CG
                     </div>
+                <?php else: ?>
+                    <?php if (!empty($post['picture'])): ?>
+                        <img src="<?php echo htmlspecialchars($post['picture']); ?>" alt="Profile" style="width: 60px; height: 60px; border-radius: 50%; border:3px solid <?php echo $p_border; ?>; object-fit:cover;">
+                    <?php else: ?>
+                        <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--dash-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; border:3px solid <?php echo $p_border; ?>;">
+                            <?php echo substr(htmlspecialchars($post['name']), 0, 1); ?>
+                        </div>
+                    <?php endif; ?>
                 <?php endif; ?>
             </div>
             
             <div style="flex:1;">
                 <div style="display:flex; align-items:center; gap:8px;">
-                    <span style="font-weight:700; font-size:1.1rem; color:var(--dash-text);"><?php echo htmlspecialchars($post['name']); ?></span>
-                    <?php if(!empty($post['profile_title'])): ?>
-                        <span style="background:rgba(0,0,0,0.05); padding:4px 12px; border-radius:12px; font-size:0.75rem; color:<?php echo $p_border !== 'transparent' ? $p_border : 'var(--dash-text-muted)'; ?>; font-weight:700;">
-                            <?php echo htmlspecialchars($post['profile_title']); ?>
-                        </span>
+                    <?php if($post['is_official']): ?>
+                        <span style="font-weight:700; font-size:1.1rem; color:var(--dash-primary); display:flex; align-items:center; gap:4px;">CodingGo Official <svg fill="currentColor" viewBox="0 0 20 20" width="18"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg></span>
+                        <span style="background:rgba(59, 130, 246, 0.1); padding:4px 12px; border-radius:12px; font-size:0.75rem; color:var(--dash-primary); font-weight:700;">📌 PENGUMUMAN</span>
+                    <?php else: ?>
+                        <span style="font-weight:700; font-size:1.1rem; color:var(--dash-text);"><?php echo htmlspecialchars($post['name']); ?></span>
+                        <?php if(!empty($post['profile_title'])): ?>
+                            <span style="background:rgba(0,0,0,0.05); padding:4px 12px; border-radius:12px; font-size:0.75rem; color:<?php echo $p_border !== 'transparent' ? $p_border : 'var(--dash-text-muted)'; ?>; font-weight:700;">
+                                <?php echo htmlspecialchars($post['profile_title']); ?>
+                            </span>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </div>
                 <div style="font-size:0.8rem; color:var(--dash-text-muted); margin-bottom:0.75rem;">

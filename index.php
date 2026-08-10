@@ -41,6 +41,7 @@ $dashboard_pages = [
     'sertifikat',
     'admin_users',
     'admin_user_detail',
+    'admin_class_access',
     'admin_settings', 
     'admin_courses', 
     'admin_courses_edit',
@@ -49,7 +50,11 @@ $dashboard_pages = [
     'admin_exams',
     'admin_badges',
     'admin_questions',
-    'admin_championship', 
+    'admin_championship',
+    'admin_championship_detail',
+    'championship',
+    'championship_detail',
+    'championship_challenge',
     'admin_community', 
     'admin_broadcast'
 ];

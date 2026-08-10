@@ -64,7 +64,7 @@ if ($is_logged_in) {
             
             <div style="flex:1; min-width:300px;">
                 <div style="display:flex; align-items:center; gap: 0.5rem; margin-bottom: 1.5rem;">
-                <a href="index.php" style="color:var(--text-muted); font-size:0.9rem; text-decoration:none;">&larr; Kembali ke Beranda</a>
+                <a href="index.php?page=dashboard" style="color:var(--text-muted); font-size:0.9rem; text-decoration:none;">&larr; Kembali ke Beranda</a>
             </div>
             
             <span style="background: <?php echo $theme_color; ?>20; color: <?php echo $theme_color; ?>; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; margin-bottom: 1rem; display: inline-block;">

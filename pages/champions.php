@@ -1,11 +1,15 @@
 <?php
 require_once 'config/db.php';
 
-// Top performers berdasarkan XP (data asli, bukan dummy)
-$stmt = $pdo->query("SELECT id, name, picture, xp_points, total_badges, profile_title, profile_color, category
-                     FROM users
-                     WHERE role = 'user'
-                     ORDER BY xp_points DESC, total_badges DESC, name ASC
+// Top performers berdasarkan XP (dinamis termasuk championship) dan badge (dinamis), semua role termasuk admin
+$stmt = $pdo->query("SELECT u.id, u.name, u.picture, u.profile_title, u.profile_color, u.category,
+                     (
+                        (SELECT COALESCE(SUM(m.xp_reward), 0) FROM user_progress up JOIN materials m ON up.material_id = m.id WHERE up.user_id = u.id AND up.status = 'completed') +
+                        (SELECT COALESCE(SUM(cc.xp_reward), 0) FROM championship_completed_challenges ccc JOIN championship_challenges cc ON ccc.challenge_id = cc.id WHERE ccc.user_id = u.id)
+                     ) as calc_xp,
+                     (SELECT COUNT(*) FROM user_badges ub WHERE ub.user_id = u.id) as calc_badges
+                     FROM users u
+                     ORDER BY calc_xp DESC, calc_badges DESC, u.name ASC
                      LIMIT 10");
 $top10 = $stmt->fetchAll();
 
@@ -47,7 +51,7 @@ $masters = $stmt_master->fetchAll();
         <div style="position:relative; z-index:1;">
             <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; opacity:0.9; margin-bottom:0.35rem;">🏆 Programmer Peringkat #1 Saat Ini</div>
             <h2 style="color:#fff; margin:0 0 0.35rem 0; font-size:1.6rem;"><?php echo htmlspecialchars($champion['name']); ?></h2>
-            <p style="color:rgba(255,255,255,0.9); margin:0;"><?php echo number_format($champion['xp_points'], 0, ',', '.'); ?> XP &middot; <?php echo $champion['total_badges']; ?> Badge &middot; Jenjang <?php echo htmlspecialchars($champion['category'] ?? 'Umum'); ?></p>
+            <p style="color:rgba(255,255,255,0.9); margin:0;"><?php echo number_format($champion['calc_xp'], 0, ',', '.'); ?> XP &middot; <?php echo $champion['calc_badges']; ?> Badge &middot; Jenjang <?php echo htmlspecialchars($champion['category'] ?? 'Umum'); ?></p>
         </div>
     </div>
     <?php else: ?>
@@ -81,7 +85,7 @@ $masters = $stmt_master->fetchAll();
                 <?php endif; ?>
             </div>
             <div style="font-weight:700; font-size:0.95rem; color:var(--dash-text); margin-bottom:0.2rem;"><?php echo htmlspecialchars($u['name']); ?></div>
-            <div style="font-size:0.8rem; color:var(--dash-text-muted);"><?php echo number_format($u['xp_points'], 0, ',', '.'); ?> XP</div>
+            <div style="font-size:0.8rem; color:var(--dash-text-muted);"><?php echo number_format($u['calc_xp'], 0, ',', '.'); ?> XP</div>
         </div>
         <?php endforeach; ?>
     </div>
@@ -118,7 +122,7 @@ $masters = $stmt_master->fetchAll();
                     <div style="font-weight:600; font-size:0.9rem; color:var(--dash-text);"><?php echo htmlspecialchars($u['name']); ?></div>
                     <div style="font-size:0.78rem; color:var(--dash-text-muted);"><?php echo htmlspecialchars($u['profile_title'] ?? 'Novice Coder'); ?> &middot; Jenjang <?php echo htmlspecialchars($u['category'] ?? 'Umum'); ?></div>
                 </div>
-                <div style="font-weight:700; color:var(--dash-primary); font-size:0.9rem; flex-shrink:0;"><?php echo number_format($u['xp_points'], 0, ',', '.'); ?> XP</div>
+                <div style="font-weight:700; color:var(--dash-primary); font-size:0.9rem; flex-shrink:0;"><?php echo number_format($u['calc_xp'], 0, ',', '.'); ?> XP</div>
             </div>
         <?php endforeach; ?>
     </div>

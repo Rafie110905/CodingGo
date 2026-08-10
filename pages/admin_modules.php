@@ -34,15 +34,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $xp_reward = $_POST['xp_reward'] ?? 0;
         $unlock_keyword = !empty($_POST['unlock_keyword']) ? trim($_POST['unlock_keyword']) : null;
         $thumbnail = $_POST['thumbnail'] ?? null;
+        $attachment_file = null;
         
-        // Dapatkan order_index tertinggi
-        $stmt_order = $pdo->prepare("SELECT MAX(order_index) as max_order FROM materials WHERE course_id = ?");
+        // Ambil order_index terakhir
+        $stmt_order = $pdo->prepare("SELECT MAX(order_index) FROM materials WHERE course_id = ?");
         $stmt_order->execute([$course_id]);
-        $row = $stmt_order->fetch();
-        $order_index = ($row['max_order'] !== null) ? $row['max_order'] + 1 : 1;
+        $last_order = $stmt_order->fetchColumn();
+        $new_order = $last_order !== false ? $last_order + 1 : 1;
         
-        $stmt_ins = $pdo->prepare("INSERT INTO materials (course_id, title, thumbnail, content_type, content_text, video_url, xp_reward, order_index, unlock_keyword) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt_ins->execute([$course_id, $title, $thumbnail, $content_type, $content_text, $video_url, $xp_reward, $order_index, $unlock_keyword]);
+        // Handle File Upload untuk Bahan Ajar
+        if (isset($_FILES['attachment_file']) && $_FILES['attachment_file']['error'] == UPLOAD_ERR_OK) {
+            $upload_dir = 'uploads/materials/';
+            if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
+            $ext = pathinfo($_FILES['attachment_file']['name'], PATHINFO_EXTENSION);
+            $filename = uniqid('bahan_') . '.' . $ext;
+            if (move_uploaded_file($_FILES['attachment_file']['tmp_name'], $upload_dir . $filename)) {
+                $attachment_file = $upload_dir . $filename;
+            }
+        }
+        
+        $stmt_add = $pdo->prepare("INSERT INTO materials (course_id, title, content_type, content_text, video_url, xp_reward, unlock_keyword, order_index, thumbnail, attachment_file) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt_add->execute([$course_id, $title, $content_type, $content_text, $video_url, $xp_reward, $unlock_keyword, $new_order, $thumbnail, $attachment_file]);
+        
         header("Location: index.php?page=admin_modules&course_id=" . $course_id);
         exit();
     } elseif ($action === 'delete_module') {
@@ -131,9 +144,9 @@ $materials = $stmt_mat->fetchAll();
         
         <!-- Form Tambah -->
         <div>
-            <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; padding: 1.5rem; position: sticky; top: 2rem;">
+            <div id="editor-wrapper" style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; padding: 1.5rem; position: sticky; top: 2rem;">
                 <h3 style="margin-top: 0; margin-bottom: 1.5rem; color: var(--dash-text);">Tambah Bab Materi</h3>
-                <form method="POST" action="">
+                <form method="POST" action="" enctype="multipart/form-data">
                     <input type="hidden" name="action" value="add_module">
                     
                     <div style="margin-bottom: 1.25rem;">
@@ -143,10 +156,15 @@ $materials = $stmt_mat->fetchAll();
                     
                     <div style="margin-bottom: 1.25rem;">
                         <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--dash-text);">URL Thumbnail (Opsional)</label>
-                        <input type="url" name="thumbnail" placeholder="Misal: https://contoh.com/gambar-bab1.jpg" style="width: 100%; padding: 0.75rem; border: 1px solid var(--dash-border); border-radius: 8px; background: var(--dash-bg); color: var(--dash-text); font-family: inherit;">
-                        <p style="font-size: 0.75rem; color: var(--dash-text-muted); margin-top: 4px;">Thumbnail kecil ini akan tampil di daftar silabus.</p>
+                        <input type="url" name="thumbnail" placeholder="Misal: https://contoh.com/gambar.jpg" style="width: 100%; padding: 0.75rem; border: 1px solid var(--dash-border); border-radius: 8px; background: var(--dash-bg); color: var(--dash-text); font-family: inherit;">
                     </div>
                     
+                    <div style="margin-bottom: 1.25rem; padding: 1.5rem; border: 2px dashed var(--dash-border); border-radius: 12px; text-align: center; background: rgba(0,0,0,0.02);">
+                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 600; color: var(--dash-text);">File Bahan Ajar (Opsional)</label>
+                        <p style="font-size: 0.8rem; color: var(--dash-text-muted); margin-bottom: 1rem;">Upload file (PDF, ZIP, PPT, DOCX) agar siswa dapat mengunduhnya.</p>
+                        <input type="file" name="attachment_file" accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar" style="display: block; margin: 0 auto; color: var(--dash-text);">
+                    </div>
+
                     <div style="margin-bottom: 1.25rem;">
                         <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--dash-text);">Tipe Konten</label>
                         <select name="content_type" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--dash-border); border-radius: 8px; background: var(--dash-bg); color: var(--dash-text); font-family: inherit;">
@@ -162,8 +180,8 @@ $materials = $stmt_mat->fetchAll();
                     </div>
                     
                     <div style="margin-bottom: 1.25rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--dash-text);">Isi Materi Teks</label>
-                        <textarea name="content_text" rows="6" placeholder="Tulis penjelasan, kode, atau materi artikel di sini..." style="width: 100%; padding: 0.75rem; border: 1px solid var(--dash-border); border-radius: 8px; background: var(--dash-bg); color: var(--dash-text); font-family: inherit; resize: vertical;"></textarea>
+                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--dash-text);">Isi Materi Teks (Mendukung Markdown)</label>
+                        <textarea name="content_text" id="content_text" rows="6" placeholder="Tulis penjelasan, kode, atau materi artikel di sini..." style="width: 100%; padding: 0.75rem; border: 1px solid var(--dash-border); border-radius: 8px; background: var(--dash-bg); color: var(--dash-text); font-family: inherit; resize: vertical;"></textarea>
                     </div>
                     
                     <div style="margin-bottom: 1.25rem;">
@@ -183,3 +201,94 @@ $materials = $stmt_mat->fetchAll();
         </div>
     </div>
 </div>
+
+<!-- EasyMDE CSS & JS & FontAwesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+<!-- Library Markdown & Code Highlighting (Sama seperti di Frontend) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-dark.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+<script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+<style>
+    /* Kostumisasi EasyMDE menyesuaikan dark mode */
+    .editor-toolbar { border-color: var(--dash-border) !important; opacity: 0.9; white-space: nowrap; overflow-x: auto; overflow-y: hidden; }
+    .editor-toolbar::-webkit-scrollbar { height: 6px; }
+    .editor-toolbar::-webkit-scrollbar-thumb { background-color: var(--dash-text-muted); border-radius: 4px; }
+    .editor-toolbar button { color: var(--dash-text) !important; display: inline-block; }
+    .editor-toolbar button.active, .editor-toolbar button:hover { background: var(--dash-sidebar) !important; }
+    .CodeMirror { border-color: var(--dash-border) !important; background: var(--dash-bg) !important; color: var(--dash-text) !important; font-size: 1.05rem; }
+    
+    /* Fix Fullscreen agar berada di bawah navbar dashboard */
+    .editor-toolbar.fullscreen { z-index: 999999 !important; background: var(--dash-bg) !important; top: 85px !important; position: fixed !important; left: 0 !important; width: 100% !important; }
+    .CodeMirror-fullscreen { z-index: 999999 !important; background: var(--dash-bg) !important; top: 135px !important; position: fixed !important; left: 0 !important; bottom: 0 !important; }
+    .editor-preview-side, .editor-preview-active-side { z-index: 999999 !important; background: var(--dash-bg) !important; top: 135px !important; position: fixed !important; right: 0 !important; bottom: 0 !important; width: 50% !important; border-left: 2px solid var(--dash-text-muted) !important; }
+    
+    /* Fix Normal Preview secara Universal (baik fullscreen maupun tidak) */
+    .editor-preview-active { z-index: 9999999 !important; background: var(--dash-bg) !important; display: block !important; opacity: 1 !important; visibility: visible !important; position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; min-height: 100% !important; }
+    body.is-fullscreen .editor-preview-active { position: fixed !important; top: 135px !important; left: 0 !important; width: 100% !important; height: auto !important; bottom: 0 !important; }
+    
+    /* Body class saat fullscreen aktif untuk meruntuhkan stacking context dan menyembunyikan sidebar */
+    body.is-fullscreen .dash-sidebar, body:has(.editor-toolbar.fullscreen) .dash-sidebar { display: none !important; }
+    body.is-fullscreen #editor-wrapper, body:has(.editor-toolbar.fullscreen) #editor-wrapper { position: static !important; z-index: 999999 !important; }
+    
+    /* Kostumisasi Preview menyatu persis dengan tema frontend */
+    .editor-preview.markdown-body { background: var(--dash-bg) !important; color: var(--dash-text) !important; font-family: inherit !important; font-size: 1.1rem; line-height: 1.8; padding: 2rem;}
+    .editor-preview.markdown-body pre { background-color: #1e1e1e !important; border: 1px solid var(--dash-border); }
+    .editor-preview.markdown-body code { font-family: 'Fira Code', 'Consolas', monospace; }
+    .editor-preview.markdown-body strong, .editor-preview.markdown-body b { font-weight: 700 !important; }
+    .editor-preview.markdown-body a { color: #3b82f6; text-decoration: none; }
+    .editor-preview.markdown-body a:hover { text-decoration: underline; }
+    .editor-preview.markdown-body img { border-radius: 8px; max-width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+</style>
+<script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+<script>
+    // Konfigurasi Marked.js untuk preview dengan fail-safe
+    marked.setOptions({
+        highlight: function(code, lang) {
+            try {
+                const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                return hljs.highlight(code, { language }).value;
+            } catch (e) {
+                return code; // Fallback aman
+            }
+        },
+        breaks: true,
+        gfm: true
+    });
+
+    const mde = new EasyMDE({
+        element: document.getElementById('content_text'),
+        autoDownloadFontAwesome: false,
+        uploadImage: true,
+        imageUploadEndpoint: 'api/upload_media.php',
+        imageMaxSize: 52428800, // 50MB
+        imageAccept: 'image/png, image/jpeg, image/gif, image/webp, application/pdf, application/zip, application/x-rar-compressed',
+        spellChecker: false,
+        promptURLs: true,
+        minHeight: "300px",
+        maxHeight: "500px",
+        toolbar: ["bold", "italic", "heading", "|", "code", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "preview", "side-by-side", "fullscreen", "|", "guide"],
+        previewClass: ["editor-preview", "markdown-body"],
+        previewRender: function(plainText) {
+            try {
+                if (typeof marked.parse === 'function') {
+                    return marked.parse(plainText);
+                }
+                return marked(plainText);
+            } catch (e) {
+                console.error("Preview Error:", e);
+                return "<div style='color:red; padding:2rem;'>Gagal merender preview: " + e.message + "</div>";
+            }
+        }
+    });
+    
+    // Workaround super-kuat untuk Stacking Context
+    setInterval(function() {
+        if (mde.isFullscreenActive() || document.querySelector('.editor-toolbar.fullscreen')) {
+            document.body.classList.add('is-fullscreen');
+        } else {
+            document.body.classList.remove('is-fullscreen');
+        }
+    }, 100);
+</script>
