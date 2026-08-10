@@ -1,11 +1,11 @@
-# 🎮 CodingGo — Platform Belajar Coding yang Aman & Seru untuk semua kalangan
+#  CodingGo — Platform Belajar Coding yang Aman & Seru untuk semua kalangan
 
 > Kompetisi Web Development — FTI Festival 2026 (PIXEL: Protection Information Exploration in the Digital Era)
 > Subtema: Platform Pembelajaran Digital yang Aman dan Inovatif
 
 ---
 
-## 📖 Deskripsi Singkat
+##  Deskripsi Singkat
 
 CodingGo adalah platform edukasi IT dasar untuk semua kalangan usia yang ingin mengenal dunia teknologi digital sejak dini — mencakup literasi digital, dasar-dasar logika komputer, dan pengenalan coding sederhana — semuanya dikemas dalam bentuk game interaktif berbasis web, tanpa memerlukan perangkat atau hardware tambahan apa pun.
 
@@ -22,15 +22,15 @@ Yang membedakan Kodinara dari platform sejenis:
 - Validasi usia otomatis — sistem memverifikasi bahwa pengguna benar-benar berada di rentang usia SD (6–12 tahun) berdasarkan tanggal lahir yang diinput orang tua.
 - Materi bertahap — dimulai dari literasi IT paling dasar sebelum masuk ke logika coding, cocok untuk anak yang benar-benar baru mengenal teknologi.
 
-## 👥 Tim
+##  Tim
 
 | Nama | Peran | GitHub |
 |---|---|---|
 | Moh Rafiie Nazar J | Project Lead / Project Manager | @username |
 | Dedy Nurohim | Frontend Developer | @username |
-| Rian Renaldy | UI/UX Desainer | @username |
+| Rian Renaldy | UI/UX Desainer | al-renaldy073 |
 
-## 🛠️ Teknologi (Tech Stack)
+##  Teknologi (Tech Stack)
 
 | Layer | Teknologi |
 |---|---|
@@ -41,7 +41,7 @@ Yang membedakan Kodinara dari platform sejenis:
 | Deployment | Vercel (frontend) / Railway atau Render (backend) |
 | Lainnya | Zod/Joi (validasi form), Docker (opsional untuk sandbox run-code) |
 
-## 📁 Struktur Folder
+##  Struktur Folder
 
 \```
 kodinara/
@@ -66,7 +66,7 @@ kodinara/
 └── README.md
 \```
 
-## 🚀 Cara Menjalankan Website (Local Setup)
+##  Cara Menjalankan Website (Local Setup)
 
 
 
@@ -76,7 +76,7 @@ Aplikasi akan berjalan di:
 
 
 
-## 🔑 Akun Demo (untuk Juri)
+##  Akun Demo (untuk Juri)
 
 | Role | Email | Password |
 |---|---|---|
@@ -84,7 +84,7 @@ Aplikasi akan berjalan di:
 | Anak (Profil) | dibuat otomatis setelah login orang tua | — |
 | Admin | demo.admin@kodinara.id | Demo1234! |
 
-## 🔒 Fitur Keamanan yang Diimplementasikan
+##  Fitur Keamanan yang Diimplementasikan
 
 - Hashing password dengan bcrypt.
 - Validasi input di sisi client dan server.
@@ -93,11 +93,11 @@ Aplikasi akan berjalan di:
 - Sandbox terisolasi untuk eksekusi kode buatan anak.
 - Tidak menyimpan data sensitif anak tanpa persetujuan orang tua.
 
-## 🖼️ Dokumentasi Pendukung
+##  Dokumentasi Pendukung
 
 Lihat folder /docs untuk wireframe, user flow, dan dokumentasi API.
 
-## 📜 Lisensi & Kredit
+##  Lisensi & Kredit
 
 Proyek ini dibuat untuk keperluan Kompetisi Web Development FTI Festival 2026.
 
