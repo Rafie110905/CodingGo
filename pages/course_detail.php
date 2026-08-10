@@ -1,5 +1,6 @@
 <?php
 require_once 'config/db.php';
+require_once 'includes/materi_icons.php';
 
 $course_id = $_GET['id'] ?? null;
 if (!$course_id) {
@@ -129,14 +130,19 @@ if ($is_logged_in) {
                     // Di UI silabus, kita beri tanda gembok jika dia punya unlock_keyword
                     $has_password = !empty($m['unlock_keyword']);
                 ?>
-                <div style="background: var(--bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; display:flex; align-items:center; gap:1rem; transition: transform 0.2s; <?php echo $is_completed ? 'border-color: #10b981;' : ''; ?>">
-                    <div style="width: 48px; height: 48px; flex-shrink:0; border-radius: 8px; overflow: hidden; background: <?php echo $is_completed ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg-hover)'; ?>; color: <?php echo $is_completed ? '#10b981' : 'var(--text-muted)'; ?>; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1.1rem; border: 1px solid var(--border-color);">
+                <div class="materi-card" style="background: var(--bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; display:flex; align-items:center; gap:1rem; <?php echo $is_completed ? 'border-color: #10b981;' : ''; ?>">
+                    <div style="position:relative; flex-shrink:0;">
                         <?php if (!empty($m['thumbnail'])): ?>
-                            <img src="<?php echo htmlspecialchars($m['thumbnail']); ?>" style="width: 100%; height: 100%; object-fit: cover;">
-                        <?php elseif ($is_completed): ?>
-                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            <div style="width: 48px; height: 48px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color);">
+                                <img src="<?php echo htmlspecialchars($m['thumbnail']); ?>" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
                         <?php else: ?>
-                            <?php echo $index + 1; ?>
+                            <?php echo renderMateriIcon($m['title'], 48); ?>
+                        <?php endif; ?>
+                        <?php if ($is_completed): ?>
+                            <div style="position:absolute; bottom:-4px; right:-4px; width:20px; height:20px; background:#10b981; border-radius:50%; border:2px solid var(--bg); display:flex; align-items:center; justify-content:center;">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="white" width="12"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+                            </div>
                         <?php endif; ?>
                     </div>
                     <div style="flex:1;">
@@ -213,3 +219,8 @@ if ($is_logged_in) {
         </div>
     </div>
 </div>
+
+<style>
+    .materi-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .materi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+</style>

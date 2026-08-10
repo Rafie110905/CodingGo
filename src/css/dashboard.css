@@ -10,6 +10,13 @@
     --dash-success: #4cc9f0;
     --dash-warning: #f72585;
     --dash-white: #ffffff;
+    --dash-bg-hover: #f1f3f9;
+
+    /* Alias agar konsisten dengan variabel yang dipakai di halaman materi & ujian */
+    --bg: var(--dash-sidebar);
+    --text: var(--dash-text);
+    --border-color: var(--dash-border);
+    --bg-hover: var(--dash-bg-hover);
 }
 
 body.dark-mode {
@@ -18,6 +25,7 @@ body.dark-mode {
     --dash-text: #e0e0e0;
     --dash-text-muted: #888888;
     --dash-border: #333333;
+    --dash-bg-hover: #2a2a2a;
 }
 
 /* Layout */
