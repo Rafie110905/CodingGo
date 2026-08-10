@@ -28,7 +28,7 @@ Yang membedakan CodingGo dari platform sejenis:
 | Nama | Peran | GitHub |
 |---|---|---|
 | Moh Rafiie Nazar J | Project Lead / Project Manager | Rafie110905 |
-| Dedy Nurohim | Frontend Developer | @username |
+| Dedy Nurohim | Frontend Developer | dy-nm |
 | Rian Renaldy | UI/UX Desainer | al-renaldy073 |
 
 ##  Teknologi (Tech Stack)
