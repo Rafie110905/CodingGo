@@ -1,32 +1,33 @@
-#  CodingGo — Platform Belajar Coding yang Aman & Seru untuk semua kalangan
+#  CodingGo — Platform Belajar Coding yang Aman & Seru untuk Semua Kalangan
 
 > Kompetisi Web Development — FTI Festival 2026 (PIXEL: Protection Information Exploration in the Digital Era)
-> Subtema: Platform Pembelajaran Digital yang Aman dan Inovatif
+> Subtema: **Platform Pembelajaran Digital yang Aman dan Inovatif**
 
 ---
 
 ##  Deskripsi Singkat
 
-CodingGo adalah platform edukasi IT dasar untuk semua kalangan usia yang ingin mengenal dunia teknologi digital sejak dini — mencakup literasi digital, dasar-dasar logika komputer, dan pengenalan coding sederhana — semuanya dikemas dalam bentuk game interaktif berbasis web, tanpa memerlukan perangkat atau hardware tambahan apa pun.
+**CodingGo** adalah platform edukasi IT dasar yang bisa diakses **semua kalangan usia** — dari jenjang SD, SMP, SMA, hingga umum — untuk mengenal dunia teknologi digital secara bertahap. Materi mencakup literasi digital, logika komputer, dasar coding, hingga pengenalan Microsoft Office, dikemas dalam bentuk kursus interaktif berbasis web lengkap dengan sistem XP, badge, ujian, dan sertifikat.
 
 Cakupan materi meliputi:
-- Pengenalan dasar komputer & internet (apa itu perangkat digital, cara kerja internet secara sederhana).
-- Literasi digital & keamanan siber dasar (mengenali informasi palsu, memahami pentingnya menjaga data pribadi).
-- Logika komputasi (computational thinking) lewat puzzle sederhana.
-- Pengenalan coding dasar berbasis blok (opsional, sebagai materi lanjutan).
-- Pengenalan Microsoft Office
+- Pengenalan dasar komputer & internet.
+- Literasi digital & keamanan siber dasar.
+- Logika komputasi (computational thinking).
+- Dasar coding (quiz & code submission).
+- Pengenalan Microsoft Office.
 
-Yang membedakan Kodinara dari platform sejenis:
-- 100% berbasis web — cukup dibuka lewat browser di laptop/tablet sekolah, tidak butuh instalasi aplikasi atau perangkat fisik (robot, kit elektronik, dsb).
-- Aman untuk anak — pendaftaran dilakukan lewat akun orang tua (parental gate), tanpa iklan pihak ketiga, dan data anak tidak dibagikan ke pihak luar.
-- Validasi usia otomatis — sistem memverifikasi bahwa pengguna benar-benar berada di rentang usia SD (6–12 tahun) berdasarkan tanggal lahir yang diinput orang tua.
-- Materi bertahap — dimulai dari literasi IT paling dasar sebelum masuk ke logika coding, cocok untuk anak yang benar-benar baru mengenal teknologi.
+Yang membedakan CodingGo dari platform sejenis:
+- **100% berbasis web** — cukup dibuka lewat browser, tidak butuh instalasi aplikasi atau perangkat fisik tambahan (robot, kit elektronik, dsb).
+- **Materi berjenjang otomatis** — sistem mengunci akses materi berdasarkan kategori usia (SD/SMP/SMA/Umum), dihitung otomatis dari tanggal lahir pengguna saat mendaftar.
+- **Login aman** — mendukung login manual maupun **Google Sign-In (OAuth)** yang diverifikasi langsung ke endpoint resmi Google.
+- **Gamifikasi pembelajaran** — sistem XP, streak harian, badge pencapaian, leaderboard, dan sertifikat digital di setiap penyelesaian kursus.
+- **Forum diskusi (community)** — peserta bisa saling tanya-jawab dan membantu satu sama lain di dalam platform.
 
 ##  Tim
 
 | Nama | Peran | GitHub |
 |---|---|---|
-| Moh Rafiie Nazar J | Project Lead / Project Manager | @username |
+| Moh Rafiie Nazar J | Project Lead / Project Manager | Rafie110905 |
 | Dedy Nurohim | Frontend Developer | @username |
 | Rian Renaldy | UI/UX Desainer | al-renaldy073 |
 
@@ -34,73 +35,106 @@ Yang membedakan Kodinara dari platform sejenis:
 
 | Layer | Teknologi |
 |---|---|
-| Frontend | React.js + Tailwind CSS |
-| Backend | Node.js + Express.js |
-| Database | MongoDB |
-| Autentikasi | JWT + bcrypt (hashing password) |
-| Deployment | Vercel (frontend) / Railway atau Render (backend) |
-| Lainnya | Zod/Joi (validasi form), Docker (opsional untuk sandbox run-code) |
+| Bahasa Utama | PHP (native, tanpa framework) |
+| Frontend | HTML5 + CSS3 (custom, per halaman: `auth.css`, `dashboard.css`, `index.css`) |
+| Database | MySQL (`codinggo_db`), dengan PDO sebagai lapisan koneksi |
+| Autentikasi | Login manual (session PHP) + Google Identity Services (OAuth 2.0) |
+| Server Lokal | XAMPP / Laragon / server PHP + MySQL sejenis |
 
 ##  Struktur Folder
 
-\```
-kodinara/
-├── client/                 # Frontend (React)
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── assets/
-│   │   └── App.jsx
-│   └── package.json
-├── server/                  # Backend (Node/Express)
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── models/
-│   │   ├── routes/
-│   │   ├── middlewares/
-│   │   └── index.js
-│   └── package.json
-├── docs/                    # Wireframe, flowchart, dokumentasi API
-├── .env.example
-├── .gitignore
-└── README.md
-\```
+```
+CodingGo/
+├── config/
+│   └── db.php                # Konfigurasi koneksi database (PDO)
+├── includes/
+│   ├── auth_helpers.php       # Logika kategori usia & hak akses materi
+│   ├── head.php / footer.php  # Komponen HTML yang dipakai berulang
+│   ├── nav_public.php
+│   ├── sidebar.php / topbar.php
+│   └── materi_icons.php
+├── pages/
+│   ├── landing.php            # Halaman utama
+│   ├── dashboard.php          # Dashboard peserta
+│   ├── course_list.php / course_detail.php / course_learn.php / course_exam.php
+│   ├── leaderboard.php / champions.php
+│   ├── certificate_view.php / sertifikat.php
+│   ├── community.php / community_post.php / community_edit.php
+│   ├── user_exams.php / user_settings.php / setup_profile.php
+│   └── admin_*.php            # Panel admin (kelola user, kursus, modul, soal ujian, pengaturan)
+├── src/
+│   ├── css/                   # Stylesheet per halaman
+│   └── img/                   # Aset gambar
+├── index.php                  # Entry point
+├── login.php / register.php / logout.php
+├── google_auth.php            # Handler login Google OAuth
+├── codinggo_db.sql            # Skema database utama
+└── database.sql               # Skema database (versi alternatif/setup)
+```
 
 ##  Cara Menjalankan Website (Local Setup)
 
+### Prasyarat
+- PHP 8.x
+- MySQL / MariaDB
+- Web server lokal (disarankan **XAMPP** atau **Laragon**)
 
+### Langkah instalasi
 
-Aplikasi akan berjalan di:
+```bash
+# 1. Clone repository
+git clone https://github.com/username/CodingGo.git
 
-### Variabel Environment (.env)
+# 2. Pindahkan folder project ke direktori server lokal
+#    contoh untuk XAMPP: C:\xampp\htdocs\CodingGo
 
+# 3. Buat database baru bernama "codinggo_db" lewat phpMyAdmin
 
+# 4. Import skema database
+#    phpMyAdmin -> pilih database "codinggo_db" -> Import -> pilih file codinggo_db.sql
+
+# 5. Sesuaikan koneksi database jika perlu, di config/db.php
+#    $host = 'localhost';
+#    $dbname = 'codinggo_db';
+#    $username = 'root';
+#    $password = '';
+
+# 6. Jalankan Apache & MySQL lewat XAMPP Control Panel
+
+# 7. Buka di browser
+http://localhost/CodingGo/
+```
+
+### Konfigurasi Login Google (opsional)
+
+Untuk mengaktifkan fitur **Google Sign-In**, daftarkan **Client ID** di [Google Cloud Console](https://console.cloud.google.com/) lalu sesuaikan pada bagian script Google Identity Services di `login.php` / `register.php`.
 
 ##  Akun Demo (untuk Juri)
 
 | Role | Email | Password |
 |---|---|---|
-| Orang Tua | demo.ortu@kodinara.id | Demo1234! |
-| Anak (Profil) | dibuat otomatis setelah login orang tua | — |
-| Admin | demo.admin@kodinara.id | Demo1234! |
+| Admin | demo.admin@codinggo.id | Demo1234! |
+| User (kategori Umum) | demo.user@codinggo.id | Demo1234! |
+
+> Kredensial di atas hanya untuk keperluan demo/penilaian juri. Sesuaikan dengan akun yang benar-benar dibuat pada database kalian sebelum submit.
 
 ##  Fitur Keamanan yang Diimplementasikan
 
-- Hashing password dengan bcrypt.
-- Validasi input di sisi client dan server.
-- Rate limiting pada endpoint login.
-- Role-based access control (orang tua, anak, admin).
-- Sandbox terisolasi untuk eksekusi kode buatan anak.
-- Tidak menyimpan data sensitif anak tanpa persetujuan orang tua.
+- **Prepared statement (PDO)** di seluruh query database — mencegah SQL Injection.
+- **Password hashing** menggunakan `password_hash()` bawaan PHP saat pengguna mengganti password.
+- **Verifikasi token Google OAuth** langsung ke endpoint resmi `oauth2.googleapis.com`, bukan validasi manual di sisi klien.
+- **Kontrol akses berbasis kategori usia** — pengguna hanya bisa membuka materi sesuai jenjang (SD/SMP/SMA/Umum) yang dihitung otomatis dari tanggal lahir (`calculateAge()`), dengan opsi override manual oleh admin.
+- **Role-based access control** — pemisahan hak akses `user` dan `admin` di seluruh halaman panel admin.
+- **Session-based authentication** untuk menjaga status login pengguna.
 
 ##  Dokumentasi Pendukung
 
-Lihat folder /docs untuk wireframe, user flow, dan dokumentasi API.
+Struktur database lengkap (kursus, materi, ujian, badge, sertifikat, forum) dapat dilihat di `codinggo_db.sql` / `database.sql`.
 
 ##  Lisensi & Kredit
 
 Proyek ini dibuat untuk keperluan Kompetisi Web Development FTI Festival 2026.
 
-## 🤝 Kontribusi Tim
+##  Kontribusi Tim
 
-Panduan lengkap cara kolaborasi ada di CONTRIBUTING.md.
+Panduan lengkap cara kolaborasi ada di [`CONTRIBUTING.md`](./CONTRIBUTING.md).
