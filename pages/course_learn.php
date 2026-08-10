@@ -5,6 +5,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 require_once 'config/db.php';
+require_once 'includes/materi_icons.php';
 
 $material_id = $_GET['id'] ?? null;
 if (!$material_id) {
@@ -122,11 +123,12 @@ $all_materials = $stmt_all->fetchAll();
                     $is_current = ($am['id'] == $material_id);
                     $style = $is_current ? 'background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-left: 3px solid #3b82f6;' : 'color: var(--text-muted);';
                 ?>
-                <a href="index.php?page=course_learn&id=<?php echo $am['id']; ?>" style="text-decoration:none; padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 500; <?php echo $style; ?> display:flex; align-items:center; gap:8px;">
+                <a href="index.php?page=course_learn&id=<?php echo $am['id']; ?>" style="text-decoration:none; padding: 0.6rem 0.75rem; border-radius: 8px; font-size: 0.85rem; font-weight: 500; <?php echo $style; ?> display:flex; align-items:center; gap:10px;">
+                    <?php echo renderMateriIcon($am['title'], 28, '8px'); ?>
+                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">Bab <?php echo $index + 1; ?>: <?php echo htmlspecialchars($am['title']); ?></span>
                     <?php if (!empty($am['unlock_keyword'])): ?>
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="13" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                     <?php endif; ?>
-                    Bab <?php echo $index + 1; ?>
                 </a>
                 <?php endforeach; ?>
             </div>
@@ -168,6 +170,7 @@ $all_materials = $stmt_all->fetchAll();
             <?php else: ?>
                 <!-- KONTEN MATERI -->
                 <div style="display:flex; align-items:center; gap:1rem; margin-bottom: 1rem;">
+                    <?php echo renderMateriIcon($material['title'], 56, '14px'); ?>
                     <h1 style="font-size: 2.2rem; color: var(--text); margin: 0;"><?php echo htmlspecialchars($material['title']); ?></h1>
                     <?php if ($is_completed): ?>
                         <span style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 4px 12px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; display:flex; align-items:center; gap:4px;">

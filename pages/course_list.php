@@ -1,5 +1,6 @@
 <?php
 require_once 'config/db.php';
+require_once 'includes/materi_icons.php';
 
 $category = $_GET['category'] ?? 'Semua';
 
@@ -56,7 +57,7 @@ if ($has_access) {
             <a href="index.php?page=course_detail&id=<?php echo $c['id']; ?>" style="text-decoration:none; color:inherit; display:block;">
                 <div class="course-card" style="transition: transform 0.2s, box-shadow 0.2s; height: 100%; display: flex; flex-direction: column;">
                     <?php 
-                        // Generate random gradient for placeholder image
+                        // Warna gradient konsisten berdasarkan judul kelas (bukan acak tiap reload)
                         $gradients = [
                             'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
                             'linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)',
@@ -64,14 +65,15 @@ if ($has_access) {
                             'linear-gradient(135deg, #b45309 0%, #f59e0b 100%)',
                             'linear-gradient(135deg, #be123c 0%, #e11d48 100%)'
                         ];
-                        $bg = $gradients[array_rand($gradients)];
+                        $gIndex = abs(crc32($c['title'])) % count($gradients);
+                        $bg = $gradients[$gIndex];
                         if (!empty($c['thumbnail'])) {
                             // If we have an actual image URL, use it
                             $bg = 'url(' . htmlspecialchars($c['thumbnail']) . ') center/cover';
                         }
                     ?>
                     <div class="course-img" style="background: <?php echo $bg; ?>; height: 140px; display:flex; align-items:center; justify-content:center; color:white; font-size:2rem; font-weight:bold;">
-                        <?php if(empty($c['thumbnail'])) echo substr(htmlspecialchars($c['title']), 0, 1); ?>
+                        <?php if(empty($c['thumbnail'])) echo renderCourseBadge($c['title'], 68); ?>
                     </div>
                     <div class="course-body" style="flex:1; display:flex; flex-direction:column;">
                         <span class="course-tag"><?php echo htmlspecialchars($c['category']); ?></span>

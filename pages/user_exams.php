@@ -1,5 +1,6 @@
 <?php
 require_once 'config/db.php';
+require_once 'includes/materi_icons.php';
 
 // Ambil semua ujian yang tersedia beserta info kelasnya
 $stmt = $pdo->query("SELECT e.*, c.title as course_title, c.category, c.thumbnail 
@@ -38,13 +39,14 @@ $exams = $stmt->fetchAll();
                             'linear-gradient(135deg, #b45309 0%, #f59e0b 100%)',
                             'linear-gradient(135deg, #be123c 0%, #e11d48 100%)'
                         ];
-                        $bg = $gradients[array_rand($gradients)];
+                        $gIndex = abs(crc32($e['course_title'])) % count($gradients);
+                        $bg = $gradients[$gIndex];
                         if (!empty($e['thumbnail'])) {
                             $bg = 'url(' . htmlspecialchars($e['thumbnail']) . ') center/cover';
                         }
                     ?>
                     <div class="course-img" style="background: <?php echo $bg; ?>; height: 120px; display:flex; align-items:center; justify-content:center; color:white; font-size:2rem; font-weight:bold; position:relative;">
-                        <?php if(empty($e['thumbnail'])) echo substr(htmlspecialchars($e['course_title']), 0, 1); ?>
+                        <?php if(empty($e['thumbnail'])) echo renderCourseBadge($e['course_title'], 60); ?>
                         <div style="position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.6); color:white; padding:4px 10px; border-radius:20px; font-size:0.75rem; font-weight:600; backdrop-filter:blur(4px);">
                             <?php echo strtoupper($e['type']); ?>
                         </div>
