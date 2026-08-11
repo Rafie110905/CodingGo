@@ -32,10 +32,28 @@ $active_courses = $stmt_ac->fetch()['total'] ?? 0;
 $stmt_mc = $pdo->prepare("SELECT COUNT(*) as total FROM user_progress WHERE user_id = ? AND status = 'completed'");
 $stmt_mc->execute([$_SESSION['user_id']]);
 $completed_materials = $stmt_mc->fetch()['total'] ?? 0;
+
+// Hitung Progress Mingguan (7 Hari Terakhir)
+$stmt_week = $pdo->prepare("SELECT COALESCE(SUM(time_spent), 0) FROM user_learning_time WHERE user_id = ? AND log_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
+$stmt_week->execute([$_SESSION['user_id']]);
+$weekly_minutes = (int)$stmt_week->fetchColumn();
+$weekly_target = 600; // Target 10 jam (600 menit)
+$weekly_progress_percent = min(100, round(($weekly_minutes / $weekly_target) * 100));
+$stroke_offset = 283 - (283 * ($weekly_progress_percent / 100));
+$remaining_minutes = max(0, $weekly_target - $weekly_minutes);
+$rem_hours = floor($remaining_minutes / 60);
+$rem_mins = $remaining_minutes % 60;
+
+// Ambil Jadwal Mendatang (Championships)
+$stmt_upc = $pdo->query("SELECT title, start_date, status FROM championships WHERE status IN ('active', 'upcoming') ORDER BY start_date ASC LIMIT 2");
+$upcoming_events = $stmt_upc->fetchAll();
+
+// Ambil Broadcast Informasi Terbaru
+$stmt_b = $pdo->query("SELECT title, type, created_at FROM broadcasts WHERE is_active = 1 ORDER BY created_at DESC LIMIT 2");
+$recent_broadcasts = $stmt_b->fetchAll();
 ?>
 
 <!-- Dashboard Main Grid -->
-    <!-- Dashboard Main Grid -->
     <div class="dash-left">
         <div class="dash-welcome">
             <h1>Selamat datang kembali, <?php echo $short_name; ?>! 👋</h1>
@@ -173,44 +191,76 @@ $completed_materials = $stmt_mc->fetch()['total'] ?? 0;
                 <div style="display:flex; justify-content:center; margin-bottom:1.5rem; position:relative;">
                     <svg viewBox="0 0 100 100" style="width:140px; height:140px;">
                         <circle cx="50" cy="50" r="45" fill="none" stroke="var(--dash-border)" stroke-width="10" />
-                        <circle cx="50" cy="50" r="45" fill="none" stroke="var(--dash-primary)" stroke-width="10" stroke-dasharray="283" stroke-dashoffset="73" stroke-linecap="round" transform="rotate(-90 50 50)" />
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="var(--dash-primary)" stroke-width="10" stroke-dasharray="283" stroke-dashoffset="<?php echo $stroke_offset; ?>" stroke-linecap="round" transform="rotate(-90 50 50)" />
                     </svg>
                     <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center;">
-                        <div style="font-size:1.75rem; font-weight:800; color:var(--dash-text);">74%</div>
+                        <div style="font-size:1.75rem; font-weight:800; color:var(--dash-text);"><?php echo $weekly_progress_percent; ?>%</div>
                         <div style="font-size:0.6rem; color:var(--dash-text-muted); text-transform:uppercase;">Target Mingguan</div>
                     </div>
                 </div>
                 
                 <div style="text-align:center; font-size:0.85rem; color:var(--dash-text-muted); margin-bottom:1.5rem;">
                     Target: 10 jam belajar<br>
-                    Waktu tersisa: 2 jam 30 menit
+                    <?php if($remaining_minutes <= 0): ?>
+                        <span style="color:var(--dash-primary); font-weight:600;">Target Tercapai! 🎉</span>
+                    <?php else: ?>
+                        Waktu tersisa: <?php echo $rem_hours; ?> jam <?php echo $rem_mins; ?> menit
+                    <?php endif; ?>
                 </div>
-                <button style="width:100%; background:rgba(67, 97, 238, 0.1); color:var(--dash-primary); border:none; padding:0.75rem; border-radius:8px; font-weight:600; cursor:pointer;">Lihat Progress Detail &rarr;</button>
+                <a href="index.php?page=statistics" style="display:block; text-align:center; width:100%; background:rgba(67, 97, 238, 0.1); color:var(--dash-primary); border:none; padding:0.75rem; border-radius:8px; font-weight:600; cursor:pointer; text-decoration:none;">Lihat Progress Detail &rarr;</a>
             </div>
 
             <!-- Jadwal Mendatang -->
             <div class="widget-card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-                    <h3 class="widget-title" style="margin:0;">Jadwal Mendatang</h3>
-                    <a href="#" style="font-size:0.75rem; color:var(--dash-primary); text-decoration:none; font-weight:500;">Lihat Semua</a>
+                    <h3 class="widget-title" style="margin:0;">Info & Jadwal</h3>
+                    <a href="index.php?page=championship" style="font-size:0.75rem; color:var(--dash-primary); text-decoration:none; font-weight:500;">Lihat Semua</a>
                 </div>
                 
                 <div style="display:flex; flex-direction:column; gap:1rem;">
-                    <div style="display:flex; gap:12px; align-items:flex-start; padding:12px; border:1px solid var(--dash-border); border-radius:12px;">
-                        <div style="background:#eff6ff; color:#3b82f6; padding:8px; border-radius:8px;"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>
-                        <div>
-                            <div style="font-weight:600; font-size:0.85rem; color:var(--dash-text); margin-bottom:4px;">Live Class: CSS Grid Layout</div>
-                            <div style="font-size:0.75rem; color:var(--dash-text-muted);">Hari ini, 19:00 WIB</div>
+                    <?php if (empty($upcoming_events) && empty($recent_broadcasts)): ?>
+                        <div style="text-align:center; padding:1rem; color:var(--dash-text-muted); font-size:0.85rem; background:var(--dash-bg); border-radius:8px;">
+                            Tidak ada jadwal dalam waktu dekat.
                         </div>
-                    </div>
-                    
-                    <div style="display:flex; gap:12px; align-items:flex-start; padding:12px; border:1px solid var(--dash-border); border-radius:12px;">
-                        <div style="background:#f0fdf4; color:#22c55e; padding:8px; border-radius:8px;"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg></div>
-                        <div>
-                            <div style="font-weight:600; font-size:0.85rem; color:var(--dash-text); margin-bottom:4px;">Challenge: Flexbox Master</div>
-                            <div style="font-size:0.75rem; color:var(--dash-text-muted);">Besok, 10:00 WIB</div>
+                    <?php else: ?>
+                        <?php foreach($upcoming_events as $event): 
+                            $dateStr = date('d M Y, H:i', strtotime($event['start_date']));
+                            $statusLabel = ($event['status'] == 'active') ? 'Sedang Berlangsung' : 'Akan Datang';
+                            $color = ($event['status'] == 'active') ? '#ef4444' : '#3b82f6';
+                            $bg = ($event['status'] == 'active') ? '#fef2f2' : '#eff6ff';
+                        ?>
+                        <div style="display:flex; gap:12px; align-items:flex-start; padding:12px; border:1px solid var(--dash-border); border-radius:12px;">
+                            <div style="background:<?php echo $bg; ?>; color:<?php echo $color; ?>; padding:8px; border-radius:8px;">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            </div>
+                            <div>
+                                <div style="font-weight:600; font-size:0.85rem; color:var(--dash-text); margin-bottom:4px;"><?php echo htmlspecialchars($event['title']); ?></div>
+                                <div style="font-size:0.75rem; color:var(--dash-text-muted);"><?php echo $dateStr; ?> - <span style="color:<?php echo $color; ?>;"><?php echo $statusLabel; ?></span></div>
+                            </div>
                         </div>
-                    </div>
+                        <?php endforeach; ?>
+
+                        <?php foreach($recent_broadcasts as $bc): 
+                            $dateStr = date('d M', strtotime($bc['created_at']));
+                            // Tentukan warna berdasarkan tipe broadcast
+                            $bcColor = '#22c55e'; $bcBg = '#f0fdf4'; $icon = 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9';
+                            if($bc['type'] == 'warning') { $bcColor = '#f59e0b'; $bcBg = '#fffbeb'; $icon = 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'; }
+                            else if($bc['type'] == 'error') { $bcColor = '#ef4444'; $bcBg = '#fef2f2'; }
+                        ?>
+                        <div style="display:flex; gap:12px; align-items:flex-start; padding:12px; border:1px solid var(--dash-border); border-radius:12px;">
+                            <div style="background:<?php echo $bcBg; ?>; color:<?php echo $bcColor; ?>; padding:8px; border-radius:8px;">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<?php echo $icon; ?>" /></svg>
+                            </div>
+                            <div>
+                                <div style="font-weight:600; font-size:0.85rem; color:var(--dash-text); margin-bottom:4px;"><?php echo htmlspecialchars($bc['title']); ?></div>
+                                <div style="font-size:0.75rem; color:var(--dash-text-muted);"><?php echo $dateStr; ?> - Info Pengumuman</div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
         </div> <!-- End dash-right -->
+
+    </div> <!-- End dashboard-layout -->
+</div> <!-- End main-wrapper -->

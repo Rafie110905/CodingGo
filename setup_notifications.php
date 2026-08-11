@@ -17,7 +17,7 @@ try {
     $stmt = $pdo->query("SELECT id FROM users");
     $users = $stmt->fetchAll(PDO::FETCH_COLUMN);
     foreach($users as $uid) {
-        $pdo->prepare("INSERT INTO user_notifications (user_id, type, title, message, link_url) VALUES (?, 'system', 'Selamat Datang!', 'Selamat datang di CodingGo. Ayo mulai petualangan coding-mu!', 'index.php?page=dashboard')")->execute([$uid]);
+        $pdo->prepare("INSERT IGNORE INTO user_notifications (user_id, type, title, message, link_url) VALUES (?, 'system', 'Selamat Datang!', 'Selamat datang di CodingGo. Ayo mulai petualangan coding-mu!', 'index.php?page=dashboard')")->execute([$uid]);
     }
 
     echo "Notifications table created and seeded.";

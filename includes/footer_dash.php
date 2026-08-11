@@ -65,6 +65,15 @@ if (isset($pdo) && isset($_SESSION['user_id'])) {
                 }
             });
         }
+
+        // Time Tracking Script (Stats)
+        setInterval(function() {
+            // Only ping if tab is active (visible)
+            if(document.visibilityState === 'visible') {
+                fetch('api/track_time.php')
+                .catch(err => console.error('Time tracking error:', err));
+            }
+        }, 60000);
     </script>
 </body>
 </html>

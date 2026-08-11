@@ -56,7 +56,8 @@ $dashboard_pages = [
     'championship_detail',
     'championship_challenge',
     'admin_community', 
-    'admin_broadcast'
+    'admin_broadcast',
+    'statistics'
 ];
 
 if (in_array($page, $dashboard_pages)) {

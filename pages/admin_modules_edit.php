@@ -152,15 +152,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     /* Body class saat fullscreen aktif untuk meruntuhkan stacking context dan menyembunyikan sidebar */
     body.is-fullscreen .dash-sidebar, body:has(.editor-toolbar.fullscreen) .dash-sidebar { display: none !important; }
     body.is-fullscreen #editor-wrapper, body:has(.editor-toolbar.fullscreen) #editor-wrapper { position: static !important; z-index: 999999 !important; }
-    
-    /* Kostumisasi Preview menyatu persis dengan tema frontend */
-    .editor-preview.markdown-body { background: var(--dash-bg) !important; color: var(--dash-text) !important; font-family: inherit !important; font-size: 1.1rem; line-height: 1.8; padding: 2rem;}
-    .editor-preview.markdown-body pre { background-color: #1e1e1e !important; border: 1px solid var(--dash-border); }
-    .editor-preview.markdown-body code { font-family: 'Fira Code', 'Consolas', monospace; }
-    .editor-preview.markdown-body strong, .editor-preview.markdown-body b { font-weight: 700 !important; }
+    /* Kostumisasi Markdown Body untuk menyatu dengan tema */
+    .editor-preview.markdown-body { background: transparent !important; color: var(--dash-text); font-family: inherit !important; font-size: 1rem; line-height: 1.8; }
+    .editor-preview.markdown-body pre { background-color: #1e1e1e !important; border: 1px solid var(--dash-border); border-radius: 8px; }
+    .editor-preview.markdown-body pre, .editor-preview.markdown-body pre code { font-family: 'Fira Code', 'Consolas', monospace; color: #abb2bf !important; }
+    .editor-preview.markdown-body p code, .editor-preview.markdown-body li code, .editor-preview.markdown-body h1 code, .editor-preview.markdown-body h2 code, .editor-preview.markdown-body h3 code { color: #d63384; background: rgba(214, 51, 132, 0.1); padding: 0.2em 0.4em; border-radius: 4px; font-size: 0.9em; font-family: 'Fira Code', 'Consolas', monospace; }
     .editor-preview.markdown-body a { color: #3b82f6; text-decoration: none; }
     .editor-preview.markdown-body a:hover { text-decoration: underline; }
     .editor-preview.markdown-body img { border-radius: 8px; max-width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .editor-preview.markdown-body pre code span { color: inherit; }
 </style>
 <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 <script>

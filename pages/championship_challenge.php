@@ -163,12 +163,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$is_completed && $is_active) {
 
 <style>
     /* Kostumisasi Markdown Body untuk menyatu dengan tema */
-    .markdown-body { background: transparent !important; color: var(--text) !important; font-family: inherit !important; font-size: 1.1rem; line-height: 1.8; }
-    .markdown-body pre { background-color: #1e1e1e !important; border: 1px solid var(--border-color); }
-    .markdown-body code { font-family: 'Fira Code', 'Consolas', monospace; }
+    .markdown-body { background: transparent !important; color: var(--text); font-family: inherit !important; font-size: 1rem; line-height: 1.8; }
+    .markdown-body pre { background-color: #1e1e1e !important; border: 1px solid var(--border-color); border-radius: 8px; }
+    .markdown-body pre, .markdown-body pre code { font-family: 'Fira Code', 'Consolas', monospace; color: #abb2bf !important; }
+    .markdown-body p code, .markdown-body li code, .markdown-body h1 code, .markdown-body h2 code, .markdown-body h3 code { color: #d63384; background: rgba(214, 51, 132, 0.1); padding: 0.2em 0.4em; border-radius: 4px; font-size: 0.9em; font-family: 'Fira Code', 'Consolas', monospace; }
     .markdown-body a { color: #3b82f6; text-decoration: none; }
     .markdown-body a:hover { text-decoration: underline; }
     .markdown-body img { border-radius: 8px; max-width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    /* Pastikan warna syntax highlighter highlight.js tetap tampil dan tidak tertimpa var(--text) */
+    .markdown-body pre code span { color: inherit; }
 </style>
 
 <script>
