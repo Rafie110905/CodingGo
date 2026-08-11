@@ -35,7 +35,7 @@ $stmt = $pdo->query("SELECT fp.*, u.name, u.picture, u.profile_title, u.profile_
                      (SELECT COUNT(*) FROM forum_replies WHERE post_id = fp.id) as reply_count 
                      FROM forum_posts fp 
                      JOIN users u ON fp.user_id = u.id 
-                     ORDER BY fp.created_at DESC");
+                     ORDER BY fp.is_official DESC, fp.created_at DESC");
 $posts = $stmt->fetchAll();
 
 // Fetch Top 10 Leaderboard
@@ -72,29 +72,40 @@ $top10 = $stmt_top->fetchAll();
                 $border_color = !empty($p['profile_color']) ? htmlspecialchars($p['profile_color']) : 'transparent';
                 ?>
                 <div style="position:relative;">
-                    <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; padding: 1.5rem; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 25px -5px rgba(0,0,0,0.05)'" onmouseout="this.style.transform='none'; this.style.boxShadow='none'">
+                    <div style="background: var(--dash-sidebar); border: 1px solid <?php echo $p['is_official'] ? 'var(--dash-primary)' : 'var(--dash-border)'; ?>; border-radius: 16px; padding: 1.5rem; transition: transform 0.2s, box-shadow 0.2s; <?php echo $p['is_official'] ? 'box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);' : ''; ?>" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 25px -5px rgba(0,0,0,0.05)'" onmouseout="this.style.transform='none'; this.style.boxShadow='<?php echo $p['is_official'] ? '0 0 0 2px rgba(59, 130, 246, 0.15)' : 'none'; ?>'">
 
                         
                         <div style="display:flex; gap:1rem; align-items:flex-start; margin-bottom:1rem;">
                             <!-- Avatar -->
                             <div style="flex-shrink:0;">
-                                <?php if (!empty($p['picture'])): ?>
-                                    <img src="<?php echo htmlspecialchars($p['picture']); ?>" alt="Profile" style="width: 50px; height: 50px; border-radius: 50%; border:3px solid <?php echo $border_color; ?>; object-fit:cover;">
-                                <?php else: ?>
-                                    <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--dash-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; border:3px solid <?php echo $border_color; ?>;">
-                                        <?php echo substr(htmlspecialchars($p['name']), 0, 1); ?>
+                                <?php if($p['is_official']): ?>
+                                    <div style="width: 50px; height: 50px; border-radius: 12px; background: var(--dash-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: bold; border:3px solid rgba(59, 130, 246, 0.3); font-family: sans-serif;">
+                                        CG
                                     </div>
+                                <?php else: ?>
+                                    <?php if (!empty($p['picture'])): ?>
+                                        <img src="<?php echo htmlspecialchars($p['picture']); ?>" alt="Profile" style="width: 50px; height: 50px; border-radius: 50%; border:3px solid <?php echo $border_color; ?>; object-fit:cover;">
+                                    <?php else: ?>
+                                        <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--dash-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; border:3px solid <?php echo $border_color; ?>;">
+                                            <?php echo substr(htmlspecialchars($p['name']), 0, 1); ?>
+                                        </div>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                             </div>
                             
                             <!-- Author Info -->
                             <div style="flex:1;">
                                 <div style="display:flex; align-items:center; gap:8px;">
-                                    <span style="font-weight:600; color:var(--dash-text);"><?php echo htmlspecialchars($p['name']); ?></span>
-                                    <?php if(!empty($p['profile_title'])): ?>
-                                        <span style="background:rgba(0,0,0,0.05); padding:2px 8px; border-radius:12px; font-size:0.7rem; color:<?php echo $border_color !== 'transparent' ? $border_color : 'var(--dash-text-muted)'; ?>; font-weight:600;">
-                                            <?php echo htmlspecialchars($p['profile_title']); ?>
-                                        </span>
+                                    <?php if($p['is_official']): ?>
+                                        <span style="font-weight:700; color:var(--dash-primary); display:flex; align-items:center; gap:4px;">CodingGo Official <svg fill="currentColor" viewBox="0 0 20 20" width="16"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg></span>
+                                        <span style="background:rgba(59, 130, 246, 0.1); padding:2px 8px; border-radius:12px; font-size:0.7rem; color:var(--dash-primary); font-weight:700;">📌 PENGUMUMAN</span>
+                                    <?php else: ?>
+                                        <span style="font-weight:600; color:var(--dash-text);"><?php echo htmlspecialchars($p['name']); ?></span>
+                                        <?php if(!empty($p['profile_title'])): ?>
+                                            <span style="background:rgba(0,0,0,0.05); padding:2px 8px; border-radius:12px; font-size:0.7rem; color:<?php echo $border_color !== 'transparent' ? $border_color : 'var(--dash-text-muted)'; ?>; font-weight:600;">
+                                                <?php echo htmlspecialchars($p['profile_title']); ?>
+                                            </span>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                 </div>
                                 <div style="font-size:0.75rem; color:var(--dash-text-muted); margin-bottom:0.5rem;">
@@ -102,7 +113,7 @@ $top10 = $stmt_top->fetchAll();
                                 </div>
                                 
                                 <!-- Badges Showcase -->
-                                <?php if(count($user_badges) > 0): ?>
+                                <?php if(!$p['is_official'] && count($user_badges) > 0): ?>
                                     <div style="display:flex; gap:4px; flex-wrap:wrap;">
                                         <?php foreach($user_badges as $b): ?>
                                             <?php if(!empty($b['icon_url'])): ?>

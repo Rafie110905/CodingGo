@@ -65,6 +65,10 @@ $all_users = $stmt->fetchAll();
                 </thead>
                 <tbody>
                     <?php foreach ($all_users as $u): ?>
+                    <?php 
+                        $user_age = calculateAge($u['birth_date'] ?? '');
+                        $active_access = getUserAllowedCategories($u);
+                    ?>
                     <tr style="border-bottom: 1px solid var(--dash-border);">
                         <td style="padding: 1rem 1.5rem;">
                             <div style="display: flex; align-items: center; gap: 12px;">
@@ -77,7 +81,10 @@ $all_users = $stmt->fetchAll();
                                 <?php endif; ?>
                                 <div>
                                     <div style="font-weight: 600; color: var(--dash-text);"><?php echo htmlspecialchars($u['name']); ?></div>
-                                    <div style="font-size: 0.8rem; color: var(--dash-text-muted);">ID: <?php echo $u['id']; ?></div>
+                                    <div style="font-size: 0.8rem; color: var(--dash-text-muted);">
+                                        ID: <?php echo $u['id']; ?> | 
+                                        Umur: <?php echo $u['birth_date'] ? $user_age . ' Tahun' : 'Belum disetel'; ?>
+                                    </div>
                                 </div>
                             </div>
                         </td>
@@ -89,25 +96,34 @@ $all_users = $stmt->fetchAll();
                                 <span style="background: rgba(34, 197, 94, 0.1); color: #22c55e; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">User</span>
                             <?php endif; ?>
                         </td>
-                        <td style="padding: 1rem 1.5rem; color: var(--dash-text);"><?php echo htmlspecialchars($u['category'] ?? '-'); ?></td>
+                        <td style="padding: 1rem 1.5rem; color: var(--dash-text);">
+                            <div style="font-size: 0.85rem; font-weight: 600;">
+                                <?php echo implode(', ', $active_access); ?>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--dash-text-muted);">
+                                Preferensi: <?php echo htmlspecialchars($u['category'] ?? '-'); ?>
+                            </div>
+                        </td>
                         <td style="padding: 1rem 1.5rem; color: var(--dash-text-muted); font-size: 0.9rem;">
                             <?php echo date('d M Y', strtotime($u['created_at'])); ?>
                         </td>
-                        <td style="padding: 1rem 1.5rem; text-align: right;">
-                            <a href="index.php?page=admin_user_detail&id=<?php echo $u['id']; ?>" style="display:inline-block; background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 0.8rem; text-decoration: none; margin-right: 8px;">Detail</a>
-                            <?php if ($u['id'] != $_SESSION['user_id']): // Jangan tampilkan tombol hapus untuk diri sendiri ?>
-                            <form method="POST" action="" style="display: inline-block;">
-                                <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
-                                <?php if ($u['role'] === 'user'): ?>
-                                    <button type="submit" name="action" value="set_admin" style="background: rgba(99, 102, 241, 0.1); color: #6366f1; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8rem; margin-right: 8px;">Jadikan Admin</button>
+                        <td style="padding: 1rem 1.5rem;">
+                            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px;">
+                                <a href="index.php?page=admin_user_detail&id=<?php echo $u['id']; ?>" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 0.8rem; text-decoration: none; white-space: nowrap;">Detail</a>
+                                <?php if ($u['id'] != $_SESSION['user_id']): // Jangan tampilkan tombol hapus untuk diri sendiri ?>
+                                <form method="POST" action="" style="display: flex; gap: 8px; margin: 0;">
+                                    <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
+                                    <?php if ($u['role'] === 'user'): ?>
+                                        <button type="submit" name="action" value="set_admin" style="background: rgba(99, 102, 241, 0.1); color: #6366f1; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8rem; white-space: nowrap;">Jadikan Admin</button>
+                                    <?php else: ?>
+                                        <button type="submit" name="action" value="set_user" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8rem; white-space: nowrap;">Cabut Admin</button>
+                                    <?php endif; ?>
+                                    <button type="submit" name="action" value="delete" onclick="return confirm('Yakin ingin menghapus user ini secara permanen?');" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8rem; white-space: nowrap;">Hapus</button>
+                                </form>
                                 <?php else: ?>
-                                    <button type="submit" name="action" value="set_user" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8rem; margin-right: 8px;">Cabut Admin</button>
+                                    <span style="font-size: 0.8rem; color: var(--dash-text-muted); font-style: italic; white-space: nowrap;">(Anda)</span>
                                 <?php endif; ?>
-                                <button type="submit" name="action" value="delete" onclick="return confirm('Yakin ingin menghapus user ini secara permanen?');" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8rem;">Hapus</button>
-                            </form>
-                            <?php else: ?>
-                                <span style="font-size: 0.8rem; color: var(--dash-text-muted); font-style: italic;">(Anda)</span>
-                            <?php endif; ?>
+                            </div>
                         </td>
                     </tr>
                     <?php endforeach; ?>

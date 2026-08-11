@@ -68,7 +68,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($is_unlocked && !$is_completed) {
             $pdo->prepare("UPDATE user_progress SET status = 'completed', completed_at = NOW() WHERE user_id = ? AND material_id = ?")->execute([$user_id, $material_id]);
             
-            // Tambahkan XP (sementara XP disimpan di table users - tapi kita blm punya kolom xp di users, asumsikan ada atau kita update badges nanti)
+            // Tambahkan XP ke global user
+            $xp_reward = (int)$material['xp_reward'];
+            $pdo->prepare("UPDATE users SET xp_points = xp_points + ? WHERE id = ?")->execute([$xp_reward, $user_id]);
+            
+            // Tambahkan XP ke Championship jika sedang mengikuti turnamen aktif
+            $stmt_active_champ = $pdo->prepare("
+                SELECT cp.championship_id 
+                FROM championship_participants cp
+                JOIN championships c ON cp.championship_id = c.id
+                WHERE cp.user_id = ? AND c.status = 'active'
+            ");
+            $stmt_active_champ->execute([$user_id]);
+            while ($champ = $stmt_active_champ->fetch()) {
+                $pdo->prepare("UPDATE championship_participants SET xp_earned = xp_earned + ? WHERE championship_id = ? AND user_id = ?")->execute([$xp_reward, $champ['championship_id'], $user_id]);
+            }
             // Cek apakah ada materi selanjutnya
             $stmt_next = $pdo->prepare("SELECT id FROM materials WHERE course_id = ? AND order_index > ? ORDER BY order_index ASC LIMIT 1");
             $stmt_next->execute([$course_id, $material['order_index']]);
@@ -167,6 +181,19 @@ $all_materials = $stmt_all->fetchAll();
                 
                 <div style="color: var(--primary); font-weight: 600; margin-bottom: 2.5rem;">+<?php echo $material['xp_reward']; ?> XP Reward</div>
                 
+                <?php if (!empty($material['attachment_file'])): ?>
+                    <div style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(59, 130, 246, 0.05); border: 1px dashed var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <h4 style="margin: 0 0 0.25rem 0; color: var(--text);">Bahan Ajar Tambahan</h4>
+                            <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Unduh file lampiran ini untuk belajar lebih lanjut.</p>
+                        </div>
+                        <a href="<?php echo htmlspecialchars($material['attachment_file']); ?>" download style="background: var(--primary); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; font-size: 0.95rem; cursor: pointer; display:flex; align-items:center; gap:8px; text-decoration:none; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                            Download File
+                        </a>
+                    </div>
+                <?php endif; ?>
+                
                 <!-- Area Konten -->
                 <div class="content-body" style="font-size:1.1rem; line-height:1.8; color:var(--dash-text); margin-bottom:3rem;">
                     <?php if (!empty($material['video_url'])): ?>
@@ -191,7 +218,11 @@ $all_materials = $stmt_all->fetchAll();
                     <?php endif; ?>
 
                     <?php if (!empty($material['content_text'])): ?>
-                        <div style="white-space: pre-wrap; font-family: inherit;"><?php echo htmlspecialchars($material['content_text']); ?></div>
+                        <!-- Wadah untuk teks raw (disembunyikan) -->
+                        <div id="raw-markdown-content" style="display:none;"><?php echo htmlspecialchars($material['content_text']); ?></div>
+                        
+                        <!-- Wadah untuk HTML yang sudah di-render -->
+                        <div id="rendered-markdown-content" class="markdown-body" style="background: transparent; color: var(--dash-text); font-family: inherit;"></div>
                     <?php endif; ?>
                 </div>
 
@@ -219,3 +250,45 @@ $all_materials = $stmt_all->fetchAll();
         </div>
     </div>
 </div>
+
+<!-- Library Markdown & Code Highlighting -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-dark.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+<script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+
+<style>
+    /* Kostumisasi Markdown Body untuk menyatu dengan tema */
+    .markdown-body { background: transparent !important; color: var(--text); font-family: inherit !important; font-size: 1.1rem; line-height: 1.8; }
+    .markdown-body pre { background-color: #1e1e1e !important; border: 1px solid var(--border-color); border-radius: 8px; }
+    .markdown-body pre, .markdown-body pre code { font-family: 'Fira Code', 'Consolas', monospace; color: #abb2bf !important; }
+    .markdown-body p code, .markdown-body li code, .markdown-body h1 code, .markdown-body h2 code, .markdown-body h3 code { color: #d63384; background: rgba(214, 51, 132, 0.1); padding: 0.2em 0.4em; border-radius: 4px; font-size: 0.9em; font-family: 'Fira Code', 'Consolas', monospace; }
+    .markdown-body a { color: #3b82f6; text-decoration: none; }
+    .markdown-body a:hover { text-decoration: underline; }
+    .markdown-body img { border-radius: 8px; max-width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    /* Pastikan warna syntax highlighter highlight.js tetap tampil dan tidak tertimpa var(--text) */
+    .markdown-body pre code span { color: inherit; }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const rawEl = document.getElementById('raw-markdown-content');
+        if (rawEl) {
+            const rawContent = rawEl.textContent || rawEl.innerText;
+            
+            // Konfigurasi Marked.js untuk menggunakan highlight.js
+            marked.setOptions({
+                highlight: function(code, lang) {
+                    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                    return hljs.highlight(code, { language }).value;
+                },
+                breaks: true, // Mengubah newline menjadi <br>
+                gfm: true // GitHub Flavored Markdown
+            });
+
+            // Render Markdown ke HTML
+            const htmlContent = marked.parse(rawContent);
+            document.getElementById('rendered-markdown-content').innerHTML = htmlContent;
+        }
+    });
+</script>

@@ -1,11 +1,15 @@
 <?php
 require_once 'config/db.php';
 
-// Ambil semua user diurutkan berdasarkan XP tertinggi, lalu badge terbanyak
-$stmt = $pdo->query("SELECT id, name, picture, xp_points, total_badges, profile_title, profile_color 
-                     FROM users 
-                     WHERE role = 'user'
-                     ORDER BY xp_points DESC, total_badges DESC, name ASC");
+// Ambil semua user (termasuk admin) diurutkan berdasarkan XP tertinggi (dinamis, gabungan materi + turnamen), lalu badge terbanyak (dinamis)
+$stmt = $pdo->query("SELECT u.id, u.name, u.picture, u.profile_title, u.profile_color,
+                     (
+                        (SELECT COALESCE(SUM(m.xp_reward), 0) FROM user_progress up JOIN materials m ON up.material_id = m.id WHERE up.user_id = u.id AND up.status = 'completed') +
+                        (SELECT COALESCE(SUM(cc.xp_reward), 0) FROM championship_completed_challenges ccc JOIN championship_challenges cc ON ccc.challenge_id = cc.id WHERE ccc.user_id = u.id)
+                     ) as calc_xp,
+                     (SELECT COUNT(*) FROM user_badges ub WHERE ub.user_id = u.id) as calc_badges
+                     FROM users u 
+                     ORDER BY calc_xp DESC, calc_badges DESC, u.name ASC");
 $leaderboard = $stmt->fetchAll();
 ?>
 
@@ -93,13 +97,13 @@ $leaderboard = $stmt->fetchAll();
 
                     <!-- Badges -->
                     <div style="text-align:center; display:flex; justify-content:center; align-items:center; gap:6px;">
-                        <span style="font-weight:700; color:var(--dash-text); font-size:1.2rem;"><?php echo $u['total_badges']; ?></span>
+                        <span style="font-weight:700; color:var(--dash-text); font-size:1.2rem;"><?php echo $u['calc_badges']; ?></span>
                         <svg fill="none" viewBox="0 0 24 24" stroke="#f59e0b" width="18"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                     </div>
 
                     <!-- XP -->
                     <div style="text-align:right; display:flex; justify-content:flex-end; align-items:center; gap:6px; color:#10b981; font-weight:800; font-size:1.2rem;">
-                        <?php echo number_format($u['xp_points'], 0, ',', '.'); ?>
+                        <?php echo number_format($u['calc_xp'], 0, ',', '.'); ?>
                         <span style="font-size:0.8rem; font-weight:700; color:#059669;">XP</span>
                     </div>
 
