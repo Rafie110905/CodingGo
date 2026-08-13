@@ -38,7 +38,7 @@ $completed_materials = $stmt_mc->fetch()['total'] ?? 0;
 $stmt_week = $pdo->prepare("SELECT COALESCE(SUM(time_spent), 0) FROM user_learning_time WHERE user_id = ? AND log_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
 $stmt_week->execute([$_SESSION['user_id']]);
 $weekly_minutes = (int)$stmt_week->fetchColumn();
-$weekly_target = 600; // Target 10 jam (600 menit)
+$weekly_target = $user_db['weekly_target'] ?? 600; // Target dinamis dari database (default 600 menit)
 $weekly_progress_percent = min(100, round(($weekly_minutes / $weekly_target) * 100));
 $stroke_offset = 283 - (283 * ($weekly_progress_percent / 100));
 $remaining_minutes = max(0, $weekly_target - $weekly_minutes);
@@ -70,27 +70,36 @@ function courseCardBg($course, $gradients) {
     return $gradients[$idx];
 }
 
-// === Lanjutkan Belajar: kelas yang sudah pernah diakses user, urut dari yang terakhir disentuh ===
-$stmt_cont = $pdo->prepare("
-    SELECT c.id, c.title, c.category, c.description, c.thumbnail, c.theme_color,
-           (SELECT COUNT(*) FROM materials m2 WHERE m2.course_id = c.id) AS total_materials,
-           (SELECT COUNT(*) FROM user_progress up2
-                JOIN materials m3 ON up2.material_id = m3.id
-                WHERE m3.course_id = c.id AND up2.user_id = ? AND up2.status = 'completed') AS completed_materials,
-           MAX(up.id) AS last_progress_id
-    FROM courses c
-    JOIN materials m ON m.course_id = c.id
-    JOIN user_progress up ON up.material_id = m.id AND up.user_id = ?
-    GROUP BY c.id, c.title, c.category, c.description, c.thumbnail, c.theme_color
-    ORDER BY last_progress_id DESC
-    LIMIT 2
-");
-$stmt_cont->execute([$_SESSION['user_id'], $_SESSION['user_id']]);
-$continue_courses = $stmt_cont->fetchAll();
-
-// === Rekomendasi Untukmu: kelas sesuai kategori/akses user yang belum pernah disentuh,
-//     diurutkan dari rating tertinggi (kelas tanpa rating ditaruh di bawah) ===
+// === Rekomendasi Untukmu & Lanjutkan Belajar: Ambil hak akses kategori dulu ===
 $allowed_categories = getUserAllowedCategories($user_db);
+
+// === Lanjutkan Belajar: kelas yang sudah pernah diakses user, urut dari yang terakhir disentuh ===
+$continue_courses = [];
+if (!empty($allowed_categories)) {
+    $placeholders = implode(',', array_fill(0, count($allowed_categories), '?'));
+    $stmt_cont = $pdo->prepare("
+        SELECT c.id, c.title, c.category, c.description, c.thumbnail, c.theme_color,
+               (SELECT COUNT(*) FROM materials m2 WHERE m2.course_id = c.id) AS total_materials,
+               (SELECT COUNT(*) FROM user_progress up2
+                    JOIN materials m3 ON up2.material_id = m3.id
+                    WHERE m3.course_id = c.id AND up2.user_id = ? AND up2.status = 'completed') AS completed_materials,
+               MAX(up.id) AS max_id,
+               MAX(up.completed_at) AS max_completed_at
+        FROM courses c
+        JOIN materials m ON m.course_id = c.id
+        JOIN user_progress up ON up.material_id = m.id AND up.user_id = ?
+        WHERE c.category IN ($placeholders)
+        GROUP BY c.id, c.title, c.category, c.description, c.thumbnail, c.theme_color
+        HAVING completed_materials < total_materials OR total_materials = 0
+        ORDER BY max_completed_at DESC, max_id DESC
+        LIMIT 2
+    ");
+    $params = array_merge([$_SESSION['user_id'], $_SESSION['user_id']], $allowed_categories);
+    $stmt_cont->execute($params);
+    $continue_courses = $stmt_cont->fetchAll();
+}
+
+// === Rekomendasi Untukmu: Top Rated Courses ===
 $recommended_courses = [];
 if (!empty($allowed_categories)) {
     $placeholders = implode(',', array_fill(0, count($allowed_categories), '?'));
@@ -99,16 +108,10 @@ if (!empty($allowed_categories)) {
                (SELECT AVG(rating) FROM course_ratings cr WHERE cr.course_id = c.id) AS avg_rating
         FROM courses c
         WHERE c.category IN ($placeholders)
-        AND c.id NOT IN (
-            SELECT DISTINCT m.course_id FROM user_progress up
-            JOIN materials m ON up.material_id = m.id
-            WHERE up.user_id = ?
-        )
         ORDER BY avg_rating IS NULL ASC, avg_rating DESC, c.created_at DESC
         LIMIT 4
     ");
-    $params = array_merge($allowed_categories, [$_SESSION['user_id']]);
-    $stmt_rec->execute($params);
+    $stmt_rec->execute($allowed_categories);
     $recommended_courses = $stmt_rec->fetchAll();
 }
 
@@ -144,25 +147,31 @@ if (!empty($shown_course_ids)) {
         </div>
 
     <div class="stats-grid">
-        <div class="stat-card">
-            <div style="display:flex; align-items:center; gap:8px;">
-                <div style="width:36px; height:36px; background:#eff6ff; color:#3b82f6; border-radius:8px; display:flex; align-items:center; justify-content:center;">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+        <a href="index.php?page=my_achievements&tab=ongoing" style="text-decoration:none; color:inherit; display:block;">
+            <div class="stat-card" style="transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 20px -8px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="width:36px; height:36px; background:#eff6ff; color:#3b82f6; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                    </div>
                 </div>
+                <div class="stat-val"><?php echo $active_courses; ?></div>
+                <div class="stat-label">Kelas Berjalan</div>
             </div>
-            <div class="stat-val"><?php echo $active_courses; ?></div>
-            <div class="stat-label">Kelas Berjalan</div>
-        </div>
-        <div class="stat-card">
-            <div style="display:flex; align-items:center; gap:8px;">
-                <div style="width:36px; height:36px; background:#f0fdf4; color:#22c55e; border-radius:8px; display:flex; align-items:center; justify-content:center;">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        </a>
+
+        <a href="index.php?page=my_achievements&tab=completed" style="text-decoration:none; color:inherit; display:block;">
+            <div class="stat-card" style="transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 20px -8px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="width:36px; height:36px; background:#f0fdf4; color:#22c55e; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
                 </div>
+                <div class="stat-val"><?php echo $completed_materials; ?></div>
+                <div class="stat-label">Materi Selesai</div>
             </div>
-            <div class="stat-val"><?php echo $completed_materials; ?></div>
-            <div class="stat-label">Materi Selesai</div>
-        </div>
-        <!-- XP Points -->
+        </a>
+
+        <!-- XP Points (Tidak di-link) -->
         <div class="stat-card" style="border-top:4px solid var(--dash-warning);">
             <div style="width:40px; height:40px; background:rgba(247, 37, 133, 0.1); color:var(--dash-warning); border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:0.5rem;">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
@@ -172,13 +181,15 @@ if (!empty($shown_course_ids)) {
         </div>
 
         <!-- Badges -->
-        <div class="stat-card" style="border-top:4px solid #f59e0b;">
-            <div style="width:40px; height:40px; background:rgba(245, 158, 11, 0.1); color:#f59e0b; border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:0.5rem;">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
+        <a href="index.php?page=my_achievements&tab=badges" style="text-decoration:none; color:inherit; display:block;">
+            <div class="stat-card" style="border-top:4px solid #f59e0b; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 20px -8px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="width:40px; height:40px; background:rgba(245, 158, 11, 0.1); color:#f59e0b; border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:0.5rem;">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
+                </div>
+                <div class="stat-val"><?php echo number_format($badges); ?></div>
+                <div class="stat-label">Badges <span style="color:var(--dash-text-muted); font-size:0.7rem; margin-left:4px;">Koleksi</span></div>
             </div>
-            <div class="stat-val"><?php echo number_format($badges); ?></div>
-            <div class="stat-label">Badges <span style="color:var(--dash-text-muted); font-size:0.7rem; margin-left:4px;">Koleksi</span></div>
-        </div>
+        </a>
     </div> <!-- End stats-grid -->
 
     <!-- Lanjutkan Belajar -->
@@ -290,7 +301,7 @@ if (!empty($shown_course_ids)) {
                 </div>
                 
                 <div style="text-align:center; font-size:0.85rem; color:var(--dash-text-muted); margin-bottom:1.5rem;">
-                    Target: 10 jam belajar<br>
+                    Target: <?php echo ($weekly_target / 60); ?> jam belajar<br>
                     <?php if($remaining_minutes <= 0): ?>
                         <span style="color:var(--dash-primary); font-weight:600;">Target Tercapai! 🎉</span>
                     <?php else: ?>

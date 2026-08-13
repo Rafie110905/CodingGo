@@ -64,22 +64,29 @@ if ($is_logged_in) {
 // Proses submit rating & ulasan
 $rating_error = null;
 $rating_success = false;
-if ($is_logged_in && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_rating'])) {
-    $rating_value = (int)($_POST['rating'] ?? 0);
-    $review_text = trim($_POST['review'] ?? '');
+$rating_deleted = false;
+if ($is_logged_in && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['submit_rating'])) {
+        $rating_value = (int)($_POST['rating'] ?? 0);
+        $review_text = trim($_POST['review'] ?? '');
 
-    if (!$has_started_course) {
-        $rating_error = "Kamu harus mulai belajar kelas ini dulu sebelum bisa memberi rating.";
-    } elseif ($rating_value < 1 || $rating_value > 5) {
-        $rating_error = "Pilih rating bintang 1-5 terlebih dahulu.";
-    } else {
-        $stmt_rate = $pdo->prepare("
-            INSERT INTO course_ratings (course_id, user_id, rating, review)
-            VALUES (?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE rating = VALUES(rating), review = VALUES(review), updated_at = CURRENT_TIMESTAMP
-        ");
-        $stmt_rate->execute([$course_id, $_SESSION['user_id'], $rating_value, $review_text ?: null]);
-        $rating_success = true;
+        if (!$has_started_course) {
+            $rating_error = "Kamu harus mulai belajar kelas ini dulu sebelum bisa memberi rating.";
+        } elseif ($rating_value < 1 || $rating_value > 5) {
+            $rating_error = "Pilih rating bintang 1-5 terlebih dahulu.";
+        } else {
+            $stmt_rate = $pdo->prepare("
+                INSERT INTO course_ratings (course_id, user_id, rating, review)
+                VALUES (?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE rating = VALUES(rating), review = VALUES(review), updated_at = CURRENT_TIMESTAMP
+            ");
+            $stmt_rate->execute([$course_id, $_SESSION['user_id'], $rating_value, $review_text ?: null]);
+            $rating_success = true;
+        }
+    } elseif (isset($_POST['delete_rating'])) {
+        $stmt_del = $pdo->prepare("DELETE FROM course_ratings WHERE course_id = ? AND user_id = ?");
+        $stmt_del->execute([$course_id, $_SESSION['user_id']]);
+        $rating_deleted = true;
     }
 }
 
@@ -270,23 +277,24 @@ $reviews = $stmt_reviews->fetchAll();
 
         <!-- Sidebar / Info Gamifikasi -->
         <div>
-            <div style="background: var(--bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.5rem; position: sticky; top: 2rem;">
-                <h3 style="margin-top: 0; margin-bottom: 1rem; color: var(--text); display:flex; align-items:center; gap:8px;">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="#f59e0b" width="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                    Materi Hunting
-                </h3>
-                <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1rem;">
-                    Kelas ini menggunakan sistem <b>Gamifikasi</b>. Beberapa materi akan terkunci. Anda harus membaca materi sebelumnya dengan seksama untuk menemukan <b>Kata Kunci Rahasia</b> agar bisa membuka materi selanjutnya.
-                </p>
-                <div style="background: rgba(245, 158, 11, 0.1); padding: 1rem; border-radius: 8px; border: 1px dashed #f59e0b;">
-                    <div style="font-weight: 600; color: #d97706; margin-bottom: 0.25rem; font-size: 0.9rem;">Hadiah Akhir:</div>
-                    <div style="color: #92400e; font-size: 0.85rem;">Selesaikan semua materi dan ujian untuk mendapatkan Badge Eksklusif di profilmu!</div>
+            <div style="position: sticky; top: 2rem;">
+                <div style="background: var(--bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.5rem;">
+                    <h3 style="margin-top: 0; margin-bottom: 1rem; color: var(--text); display:flex; align-items:center; gap:8px;">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="#f59e0b" width="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                        Materi Hunting
+                    </h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1rem;">
+                        Kelas ini menggunakan sistem <b>Gamifikasi</b>. Beberapa materi akan terkunci. Anda harus membaca materi sebelumnya dengan seksama untuk menemukan <b>Kata Kunci Rahasia</b> agar bisa membuka materi selanjutnya.
+                    </p>
+                    <div style="background: rgba(245, 158, 11, 0.1); padding: 1rem; border-radius: 8px; border: 1px dashed #f59e0b;">
+                        <div style="font-weight: 600; color: #d97706; margin-bottom: 0.25rem; font-size: 0.9rem;">Hadiah Akhir:</div>
+                        <div style="color: #92400e; font-size: 0.85rem;">Selesaikan semua materi dan ujian untuk mendapatkan Badge Eksklusif di profilmu!</div>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Form Rating & Ulasan -->
-            <?php if ($is_logged_in): ?>
-            <div style="background: var(--bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.5rem; margin-top: 1.5rem;">
+                <!-- Form Rating & Ulasan -->
+                <?php if ($is_logged_in): ?>
+                <div style="background: var(--bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.5rem; margin-top: 1.5rem;">
                 <h3 style="margin-top: 0; margin-bottom: 1rem; color: var(--text); font-size: 1.05rem;">
                     <?php echo $my_rating ? 'Ubah Rating Kamu' : 'Beri Rating Kelas Ini'; ?>
                 </h3>
@@ -296,6 +304,8 @@ $reviews = $stmt_reviews->fetchAll();
                 <?php else: ?>
                     <?php if ($rating_success): ?>
                         <div style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem;">Terima kasih! Rating kamu sudah tersimpan.</div>
+                    <?php elseif ($rating_deleted): ?>
+                        <div style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem;">Rating berhasil dihapus.</div>
                     <?php elseif ($rating_error): ?>
                         <div style="background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem;"><?php echo htmlspecialchars($rating_error); ?></div>
                     <?php endif; ?>
@@ -309,9 +319,17 @@ $reviews = $stmt_reviews->fetchAll();
                         </div>
                         <input type="hidden" name="rating" id="ratingInput" value="<?php echo $current_star; ?>">
                         <textarea name="review" rows="3" placeholder="Tulis ulasan singkat (opsional)..." style="width:100%; padding:0.75rem; border-radius:8px; border:1px solid var(--border-color); background: var(--bg-hover); color: var(--text); font-family:inherit; resize:vertical; margin-bottom:1rem;"><?php echo htmlspecialchars($my_rating['review'] ?? ''); ?></textarea>
-                        <button type="submit" name="submit_rating" value="1" style="width:100%; background: <?php echo $theme_color; ?>; color:white; border:none; padding:0.75rem; border-radius:8px; font-weight:600; cursor:pointer;">
-                            <?php echo $my_rating ? 'Perbarui Rating' : 'Kirim Rating'; ?>
-                        </button>
+                        
+                        <div style="display:flex; gap:0.5rem; flex-direction:column;">
+                            <button type="submit" name="submit_rating" value="1" style="width:100%; background: <?php echo $theme_color; ?>; color:white; border:none; padding:0.75rem; border-radius:8px; font-weight:600; cursor:pointer;">
+                                <?php echo $my_rating ? 'Perbarui Rating' : 'Kirim Rating'; ?>
+                            </button>
+                            <?php if ($my_rating): ?>
+                                <button type="submit" name="delete_rating" value="1" onclick="return confirm('Yakin ingin menghapus rating?');" style="width:100%; background: transparent; color: #ef4444; border: 1px solid #ef4444; padding:0.75rem; border-radius:8px; font-weight:600; cursor:pointer;">
+                                    Hapus Rating
+                                </button>
+                            <?php endif; ?>
+                        </div>
                     </form>
                     <script>
                         (function() {
@@ -329,6 +347,7 @@ $reviews = $stmt_reviews->fetchAll();
                         })();
                     </script>
                 <?php endif; ?>
+            </div>
             </div>
             <?php endif; ?>
         </div>
