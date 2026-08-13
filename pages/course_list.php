@@ -14,10 +14,36 @@ $has_access = hasCategoryAccess($current_user, $category);
 // Ambil kelas berdasarkan kategori jika memiliki akses
 if ($has_access) {
     if ($category === 'Semua') {
-        $stmt = $pdo->query("SELECT * FROM courses ORDER BY created_at DESC");
-        $courses = $stmt->fetchAll();
+        $allowed = getUserAllowedCategories($current_user);
+        if ($current_user['role'] === 'admin') {
+            // Admin sees all
+            $stmt = $pdo->query("
+                SELECT c.*, 
+                       (SELECT AVG(rating) FROM course_ratings cr WHERE cr.course_id = c.id) as avg_rating,
+                       (SELECT COUNT(*) FROM course_ratings cr2 WHERE cr2.course_id = c.id) as total_ratings
+                FROM courses c ORDER BY created_at DESC
+            ");
+            $courses = $stmt->fetchAll();
+        } else if (!empty($allowed)) {
+            $placeholders = implode(',', array_fill(0, count($allowed), '?'));
+            $stmt = $pdo->prepare("
+                SELECT c.*, 
+                       (SELECT AVG(rating) FROM course_ratings cr WHERE cr.course_id = c.id) as avg_rating,
+                       (SELECT COUNT(*) FROM course_ratings cr2 WHERE cr2.course_id = c.id) as total_ratings
+                FROM courses c WHERE c.category IN ($placeholders) ORDER BY created_at DESC
+            ");
+            $stmt->execute($allowed);
+            $courses = $stmt->fetchAll();
+        } else {
+            $courses = [];
+        }
     } else {
-        $stmt = $pdo->prepare("SELECT * FROM courses WHERE category = ? ORDER BY created_at DESC");
+        $stmt = $pdo->prepare("
+            SELECT c.*, 
+                   (SELECT AVG(rating) FROM course_ratings cr WHERE cr.course_id = c.id) as avg_rating,
+                   (SELECT COUNT(*) FROM course_ratings cr2 WHERE cr2.course_id = c.id) as total_ratings
+            FROM courses c WHERE c.category = ? ORDER BY created_at DESC
+        ");
         $stmt->execute([$category]);
         $courses = $stmt->fetchAll();
     }
@@ -76,7 +102,14 @@ if ($has_access) {
                         <?php if(empty($c['thumbnail'])) echo renderCourseBadge($c['title'], 68); ?>
                     </div>
                     <div class="course-body" style="flex:1; display:flex; flex-direction:column;">
-                        <span class="course-tag"><?php echo htmlspecialchars($c['category']); ?></span>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                            <span class="course-tag" style="margin-bottom:0;"><?php echo htmlspecialchars($c['category']); ?></span>
+                            <?php if (!empty($c['total_ratings'])): ?>
+                                <span style="font-size:0.75rem; color:#eab308; font-weight:600;">⭐ <?php echo round($c['avg_rating'], 1); ?> (<?php echo $c['total_ratings']; ?>)</span>
+                            <?php else: ?>
+                                <span style="font-size:0.7rem; color:var(--dash-text-muted);">Belum ada rating</span>
+                            <?php endif; ?>
+                        </div>
                         <div class="course-title" style="margin-bottom:0.5rem; font-size:1.1rem; line-height:1.4;"><?php echo htmlspecialchars($c['title']); ?></div>
                         <div class="course-desc" style="flex:1; margin-bottom:1rem;"><?php echo htmlspecialchars(substr($c['description'], 0, 100)) . '...'; ?></div>
                         
