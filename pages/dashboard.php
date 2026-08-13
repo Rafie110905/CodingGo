@@ -1,5 +1,6 @@
 <?php
 require_once 'config/db.php';
+require_once 'includes/materi_icons.php';
 
 // Ambil data user terbaru dari DB
 $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
@@ -51,6 +52,88 @@ $upcoming_events = $stmt_upc->fetchAll();
 // Ambil Broadcast Informasi Terbaru
 $stmt_b = $pdo->query("SELECT title, type, created_at FROM broadcasts WHERE is_active = 1 ORDER BY created_at DESC LIMIT 2");
 $recent_broadcasts = $stmt_b->fetchAll();
+
+// Gradient warna untuk kartu kelas yang tidak punya thumbnail (konsisten per judul)
+$course_gradients = [
+    'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+    'linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)',
+    'linear-gradient(135deg, #4338ca 0%, #6366f1 100%)',
+    'linear-gradient(135deg, #b45309 0%, #f59e0b 100%)',
+    'linear-gradient(135deg, #be123c 0%, #e11d48 100%)',
+    'linear-gradient(135deg, #166534 0%, #22c55e 100%)',
+];
+function courseCardBg($course, $gradients) {
+    if (!empty($course['thumbnail'])) {
+        return 'url(' . htmlspecialchars($course['thumbnail']) . ') center/cover';
+    }
+    $idx = abs(crc32($course['title'])) % count($gradients);
+    return $gradients[$idx];
+}
+
+// === Lanjutkan Belajar: kelas yang sudah pernah diakses user, urut dari yang terakhir disentuh ===
+$stmt_cont = $pdo->prepare("
+    SELECT c.id, c.title, c.category, c.description, c.thumbnail, c.theme_color,
+           (SELECT COUNT(*) FROM materials m2 WHERE m2.course_id = c.id) AS total_materials,
+           (SELECT COUNT(*) FROM user_progress up2
+                JOIN materials m3 ON up2.material_id = m3.id
+                WHERE m3.course_id = c.id AND up2.user_id = ? AND up2.status = 'completed') AS completed_materials,
+           MAX(up.id) AS last_progress_id
+    FROM courses c
+    JOIN materials m ON m.course_id = c.id
+    JOIN user_progress up ON up.material_id = m.id AND up.user_id = ?
+    GROUP BY c.id, c.title, c.category, c.description, c.thumbnail, c.theme_color
+    ORDER BY last_progress_id DESC
+    LIMIT 2
+");
+$stmt_cont->execute([$_SESSION['user_id'], $_SESSION['user_id']]);
+$continue_courses = $stmt_cont->fetchAll();
+
+// === Rekomendasi Untukmu: kelas sesuai kategori/akses user yang belum pernah disentuh,
+//     diurutkan dari rating tertinggi (kelas tanpa rating ditaruh di bawah) ===
+$allowed_categories = getUserAllowedCategories($user_db);
+$recommended_courses = [];
+if (!empty($allowed_categories)) {
+    $placeholders = implode(',', array_fill(0, count($allowed_categories), '?'));
+    $stmt_rec = $pdo->prepare("
+        SELECT c.*,
+               (SELECT AVG(rating) FROM course_ratings cr WHERE cr.course_id = c.id) AS avg_rating
+        FROM courses c
+        WHERE c.category IN ($placeholders)
+        AND c.id NOT IN (
+            SELECT DISTINCT m.course_id FROM user_progress up
+            JOIN materials m ON up.material_id = m.id
+            WHERE up.user_id = ?
+        )
+        ORDER BY avg_rating IS NULL ASC, avg_rating DESC, c.created_at DESC
+        LIMIT 4
+    ");
+    $params = array_merge($allowed_categories, [$_SESSION['user_id']]);
+    $stmt_rec->execute($params);
+    $recommended_courses = $stmt_rec->fetchAll();
+}
+
+// Ambil rata-rata rating & jumlah rating untuk kelas yang tampil (continue + rekomendasi) sekaligus
+$rating_map = [];
+$shown_course_ids = array_merge(
+    array_column($continue_courses, 'id'),
+    array_column($recommended_courses, 'id')
+);
+if (!empty($shown_course_ids)) {
+    $ids_placeholders = implode(',', array_fill(0, count($shown_course_ids), '?'));
+    $stmt_ratings = $pdo->prepare("
+        SELECT course_id, AVG(rating) as avg_rating, COUNT(*) as total_ratings
+        FROM course_ratings
+        WHERE course_id IN ($ids_placeholders)
+        GROUP BY course_id
+    ");
+    $stmt_ratings->execute($shown_course_ids);
+    foreach ($stmt_ratings->fetchAll() as $row) {
+        $rating_map[$row['course_id']] = [
+            'avg' => round($row['avg_rating'], 1),
+            'count' => (int)$row['total_ratings'],
+        ];
+    }
+}
 ?>
 
 <!-- Dashboard Main Grid -->
@@ -101,70 +184,77 @@ $recent_broadcasts = $stmt_b->fetchAll();
     <!-- Lanjutkan Belajar -->
     <div class="section-header">
                 <h2>Lanjutkan Belajar</h2>
-                <a href="#">Lihat Semua</a>
+                <a href="index.php?page=course_list">Lihat Semua</a>
             </div>
+            <?php if (empty($continue_courses)): ?>
+            <div style="background: var(--dash-sidebar); border: 1px dashed var(--dash-border); padding: 2rem; text-align: center; border-radius: 16px; margin-bottom: 1.5rem;">
+                <p style="color: var(--dash-text-muted); margin-bottom: 1rem;">Kamu belum mulai belajar kelas apa pun. Yuk, mulai kelas pertamamu!</p>
+                <a href="index.php?page=course_list" style="display:inline-block; background:var(--dash-primary); color:white; padding:0.6rem 1.25rem; border-radius:8px; font-weight:600; text-decoration:none; font-size:0.85rem;">Jelajahi Kelas &rarr;</a>
+            </div>
+            <?php else: ?>
             <div class="courses-grid" style="grid-template-columns: repeat(2, 1fr);">
+                <?php foreach ($continue_courses as $cc):
+                    $percent = $cc['total_materials'] > 0 ? min(100, round(($cc['completed_materials'] / $cc['total_materials']) * 100)) : 0;
+                    $bg = courseCardBg($cc, $course_gradients);
+                    $cc_rating = $rating_map[$cc['id']] ?? null;
+                ?>
+                <a href="index.php?page=course_detail&id=<?php echo $cc['id']; ?>" style="text-decoration:none; color:inherit;">
                 <div class="course-card">
-                    <div class="course-img" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);">HTML</div>
+                    <div class="course-img" style="background: <?php echo $bg; ?>; display:flex; align-items:center; justify-content:center;">
+                        <?php if (empty($cc['thumbnail'])) echo renderCourseBadge($cc['title'], 64); ?>
+                    </div>
                     <div class="course-body">
-                        <span class="course-tag">Dasar</span>
-                        <div class="course-title">HTML Fundamental</div>
-                        <div class="course-desc">Pelajari dasar-dasar HTML untuk membuat struktur web.</div>
-                        <div class="progress-wrap"><div class="progress-bar" style="width: 65%;"></div></div>
-                        <div class="progress-text">65%</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span class="course-tag" style="margin-bottom:0;"><?php echo htmlspecialchars($cc['category']); ?></span>
+                            <?php if ($cc_rating): ?>
+                                <span style="font-size:0.75rem; color:#eab308; font-weight:600;">⭐ <?php echo $cc_rating['avg']; ?> (<?php echo $cc_rating['count']; ?>)</span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="course-title"><?php echo htmlspecialchars($cc['title']); ?></div>
+                        <div class="course-desc"><?php echo htmlspecialchars(mb_strimwidth($cc['description'], 0, 90, '...')); ?></div>
+                        <div class="progress-wrap"><div class="progress-bar" style="width: <?php echo $percent; ?>%;"></div></div>
+                        <div class="progress-text"><?php echo $percent; ?>%</div>
                     </div>
                 </div>
-                <div class="course-card">
-                    <div class="course-img" style="background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);">CSS</div>
-                    <div class="course-body">
-                        <span class="course-tag">Dasar</span>
-                        <div class="course-title">CSS Styling</div>
-                        <div class="course-desc">Membuat tampilan web yang menarik dengan CSS.</div>
-                        <div class="progress-wrap"><div class="progress-bar" style="width: 40%;"></div></div>
-                        <div class="progress-text">40%</div>
-                    </div>
-                </div>
+                </a>
+                <?php endforeach; ?>
             </div>
+            <?php endif; ?>
 
             <!-- Rekomendasi Untukmu -->
             <div class="section-header">
                 <h2>Rekomendasi Untukmu</h2>
-                <a href="#">Lihat Semua</a>
+                <a href="index.php?page=course_list">Lihat Semua</a>
             </div>
+            <?php if (empty($recommended_courses)): ?>
+            <div style="background: var(--dash-sidebar); border: 1px dashed var(--dash-border); padding: 2rem; text-align: center; border-radius: 16px;">
+                <p style="color: var(--dash-text-muted);">Belum ada rekomendasi kelas baru untukmu saat ini. Kamu sudah menjelajahi semua kelas yang tersedia! 🎉</p>
+            </div>
+            <?php else: ?>
             <div class="courses-grid" style="grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                <?php foreach ($recommended_courses as $rc):
+                    $bg = courseCardBg($rc, $course_gradients);
+                    $rc_rating = $rating_map[$rc['id']] ?? null;
+                ?>
+                <a href="index.php?page=course_detail&id=<?php echo $rc['id']; ?>" style="text-decoration:none; color:inherit;">
                 <div class="course-card">
-                    <div class="course-img" style="height:90px; font-size:1.5rem; background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%);">JS</div>
+                    <div class="course-img" style="height:90px; background: <?php echo $bg; ?>; display:flex; align-items:center; justify-content:center;">
+                        <?php if (empty($rc['thumbnail'])) echo renderCourseBadge($rc['title'], 56); ?>
+                    </div>
                     <div class="course-body">
-                        <div class="course-title" style="font-size:0.85rem;">JavaScript DOM</div>
-                        <div class="course-desc" style="font-size:0.75rem; margin-bottom:0.5rem;">Menengah</div>
-                        <div style="font-size:0.75rem; color:#eab308; font-weight:600;">⭐ 4.8 (120)</div>
+                        <div class="course-title" style="font-size:0.85rem;"><?php echo htmlspecialchars($rc['title']); ?></div>
+                        <div class="course-desc" style="font-size:0.75rem; margin-bottom:0.5rem;"><?php echo htmlspecialchars($rc['category']); ?></div>
+                        <?php if ($rc_rating): ?>
+                            <div style="font-size:0.75rem; color:#eab308; font-weight:600;">⭐ <?php echo $rc_rating['avg']; ?> (<?php echo $rc_rating['count']; ?>)</div>
+                        <?php else: ?>
+                            <div style="font-size:0.75rem; color:var(--dash-text-muted);">Belum ada rating</div>
+                        <?php endif; ?>
                     </div>
                 </div>
-                <div class="course-card">
-                    <div class="course-img" style="height:90px; font-size:1.5rem; background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);">React</div>
-                    <div class="course-body">
-                        <div class="course-title" style="font-size:0.85rem;">React untuk Pemula</div>
-                        <div class="course-desc" style="font-size:0.75rem; margin-bottom:0.5rem;">Menengah</div>
-                        <div style="font-size:0.75rem; color:#eab308; font-weight:600;">⭐ 4.9 (98)</div>
-                    </div>
-                </div>
-                <div class="course-card">
-                    <div class="course-img" style="height:90px; font-size:1.5rem; background: linear-gradient(135deg, #166534 0%, #22c55e 100%);">Node</div>
-                    <div class="course-body">
-                        <div class="course-title" style="font-size:0.85rem;">Node.js Dasar</div>
-                        <div class="course-desc" style="font-size:0.75rem; margin-bottom:0.5rem;">Menengah</div>
-                        <div style="font-size:0.75rem; color:#eab308; font-weight:600;">⭐ 4.7 (76)</div>
-                    </div>
-                </div>
-                <div class="course-card">
-                    <div class="course-img" style="height:90px; font-size:1.5rem; background: linear-gradient(135deg, #be123c 0%, #e11d48 100%);">Git</div>
-                    <div class="course-body">
-                        <div class="course-title" style="font-size:0.85rem;">Git Version Control</div>
-                        <div class="course-desc" style="font-size:0.75rem; margin-bottom:0.5rem;">Dasar</div>
-                        <div style="font-size:0.75rem; color:#eab308; font-weight:600;">⭐ 4.9 (210)</div>
-                    </div>
-                </div>
+                </a>
+                <?php endforeach; ?>
             </div>
+            <?php endif; ?>
             
             <div style="background:linear-gradient(90deg, #4361ee 0%, #3a0ca3 100%); border-radius:16px; padding:1.5rem 2rem; display:flex; justify-content:space-between; align-items:center; color:white;">
                 <div style="display:flex; align-items:center; gap:1rem;">

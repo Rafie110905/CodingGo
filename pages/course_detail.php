@@ -36,6 +36,7 @@ $exams = $stmt_ex->fetchAll();
 $is_logged_in = isset($_SESSION['user_id']);
 $completed_materials = [];
 $has_access = false;
+$has_started_course = false;
 if ($is_logged_in) {
     $stmt_prog = $pdo->prepare("SELECT material_id FROM user_progress WHERE user_id = ? AND status = 'completed'");
     $stmt_prog->execute([$_SESSION['user_id']]);
@@ -46,10 +47,68 @@ if ($is_logged_in) {
     $stmt_u->execute([$_SESSION['user_id']]);
     $current_user = $stmt_u->fetch();
     $has_access = hasCategoryAccess($current_user, $course['category']);
+
+    // Cek apakah user sudah pernah mulai belajar kelas ini (syarat untuk bisa memberi rating)
+    $stmt_started = $pdo->prepare("
+        SELECT COUNT(*) FROM user_progress up
+        JOIN materials m ON up.material_id = m.id
+        WHERE m.course_id = ? AND up.user_id = ?
+    ");
+    $stmt_started->execute([$course_id, $_SESSION['user_id']]);
+    $has_started_course = $stmt_started->fetchColumn() > 0;
 } else {
     // Pengunjung publik boleh melihat halaman detail, tapi tombolnya akan diarahkan ke login
     $has_access = true;
 }
+
+// Proses submit rating & ulasan
+$rating_error = null;
+$rating_success = false;
+if ($is_logged_in && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_rating'])) {
+    $rating_value = (int)($_POST['rating'] ?? 0);
+    $review_text = trim($_POST['review'] ?? '');
+
+    if (!$has_started_course) {
+        $rating_error = "Kamu harus mulai belajar kelas ini dulu sebelum bisa memberi rating.";
+    } elseif ($rating_value < 1 || $rating_value > 5) {
+        $rating_error = "Pilih rating bintang 1-5 terlebih dahulu.";
+    } else {
+        $stmt_rate = $pdo->prepare("
+            INSERT INTO course_ratings (course_id, user_id, rating, review)
+            VALUES (?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE rating = VALUES(rating), review = VALUES(review), updated_at = CURRENT_TIMESTAMP
+        ");
+        $stmt_rate->execute([$course_id, $_SESSION['user_id'], $rating_value, $review_text ?: null]);
+        $rating_success = true;
+    }
+}
+
+// Ambil rata-rata rating & jumlah ulasan kelas ini
+$stmt_ravg = $pdo->prepare("SELECT AVG(rating) as avg_rating, COUNT(*) as total_ratings FROM course_ratings WHERE course_id = ?");
+$stmt_ravg->execute([$course_id]);
+$rating_summary = $stmt_ravg->fetch();
+$avg_rating = $rating_summary['avg_rating'] ? round($rating_summary['avg_rating'], 1) : null;
+$total_ratings = (int)$rating_summary['total_ratings'];
+
+// Ambil rating milik user yang sedang login (jika ada), untuk pre-fill form
+$my_rating = null;
+if ($is_logged_in) {
+    $stmt_mine = $pdo->prepare("SELECT rating, review FROM course_ratings WHERE course_id = ? AND user_id = ?");
+    $stmt_mine->execute([$course_id, $_SESSION['user_id']]);
+    $my_rating = $stmt_mine->fetch();
+}
+
+// Ambil ulasan terbaru dari user lain (yang menulis teks ulasan) untuk ditampilkan
+$stmt_reviews = $pdo->prepare("
+    SELECT cr.rating, cr.review, cr.created_at, u.name as reviewer_name, u.picture as reviewer_picture
+    FROM course_ratings cr
+    JOIN users u ON cr.user_id = u.id
+    WHERE cr.course_id = ? AND cr.review IS NOT NULL AND cr.review != ''
+    ORDER BY cr.created_at DESC
+    LIMIT 10
+");
+$stmt_reviews->execute([$course_id]);
+$reviews = $stmt_reviews->fetchAll();
 ?>
 
 <?php
@@ -88,6 +147,14 @@ if ($is_logged_in) {
                 <div style="display: flex; align-items: center; gap: 0.5rem; color: #10b981; font-weight:600;">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                     <span>Total <?php echo $mat_info['total_xp'] ?? 0; ?> XP</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; color: #eab308; font-weight:600;">
+                    <svg fill="currentColor" viewBox="0 0 20 20" width="20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.958a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.368 2.447a1 1 0 00-.363 1.118l1.287 3.957c.3.922-.755 1.688-1.539 1.118l-3.367-2.446a1 1 0 00-1.176 0l-3.367 2.446c-.784.57-1.838-.196-1.539-1.118l1.287-3.957a1 1 0 00-.363-1.118L2.062 9.385c-.783-.57-.38-1.81.588-1.81h4.163a1 1 0 00.95-.69l1.286-3.958z" /></svg>
+                    <?php if ($avg_rating !== null): ?>
+                        <span><?php echo $avg_rating; ?> <span style="font-weight:400; color: var(--text-muted);">(<?php echo $total_ratings; ?> rating)</span></span>
+                    <?php else: ?>
+                        <span style="font-weight:400; color: var(--text-muted);">Belum ada rating</span>
+                    <?php endif; ?>
                 </div>
             </div>
             
@@ -216,8 +283,77 @@ if ($is_logged_in) {
                     <div style="color: #92400e; font-size: 0.85rem;">Selesaikan semua materi dan ujian untuk mendapatkan Badge Eksklusif di profilmu!</div>
                 </div>
             </div>
+
+            <!-- Form Rating & Ulasan -->
+            <?php if ($is_logged_in): ?>
+            <div style="background: var(--bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.5rem; margin-top: 1.5rem;">
+                <h3 style="margin-top: 0; margin-bottom: 1rem; color: var(--text); font-size: 1.05rem;">
+                    <?php echo $my_rating ? 'Ubah Rating Kamu' : 'Beri Rating Kelas Ini'; ?>
+                </h3>
+
+                <?php if (!$has_started_course): ?>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">Mulai belajar kelas ini dulu untuk bisa memberi rating & ulasan.</p>
+                <?php else: ?>
+                    <?php if ($rating_success): ?>
+                        <div style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem;">Terima kasih! Rating kamu sudah tersimpan.</div>
+                    <?php elseif ($rating_error): ?>
+                        <div style="background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem;"><?php echo htmlspecialchars($rating_error); ?></div>
+                    <?php endif; ?>
+
+                    <form method="POST" id="ratingForm">
+                        <div id="starPicker" style="display:flex; gap:6px; margin-bottom: 1rem; font-size: 1.75rem; cursor:pointer;">
+                            <?php $current_star = $my_rating['rating'] ?? 0; ?>
+                            <?php for ($i = 1; $i <= 5; $i++): ?>
+                                <span class="star-choice" data-value="<?php echo $i; ?>" style="color: <?php echo $i <= $current_star ? '#eab308' : 'var(--border-color)'; ?>;">&#9733;</span>
+                            <?php endfor; ?>
+                        </div>
+                        <input type="hidden" name="rating" id="ratingInput" value="<?php echo $current_star; ?>">
+                        <textarea name="review" rows="3" placeholder="Tulis ulasan singkat (opsional)..." style="width:100%; padding:0.75rem; border-radius:8px; border:1px solid var(--border-color); background: var(--bg-hover); color: var(--text); font-family:inherit; resize:vertical; margin-bottom:1rem;"><?php echo htmlspecialchars($my_rating['review'] ?? ''); ?></textarea>
+                        <button type="submit" name="submit_rating" value="1" style="width:100%; background: <?php echo $theme_color; ?>; color:white; border:none; padding:0.75rem; border-radius:8px; font-weight:600; cursor:pointer;">
+                            <?php echo $my_rating ? 'Perbarui Rating' : 'Kirim Rating'; ?>
+                        </button>
+                    </form>
+                    <script>
+                        (function() {
+                            var stars = document.querySelectorAll('#starPicker .star-choice');
+                            var input = document.getElementById('ratingInput');
+                            stars.forEach(function(star) {
+                                star.addEventListener('click', function() {
+                                    var val = parseInt(star.getAttribute('data-value'), 10);
+                                    input.value = val;
+                                    stars.forEach(function(s) {
+                                        s.style.color = parseInt(s.getAttribute('data-value'), 10) <= val ? '#eab308' : 'var(--border-color)';
+                                    });
+                                });
+                            });
+                        })();
+                    </script>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
+
+    <!-- Ulasan Peserta -->
+    <?php if (!empty($reviews)): ?>
+    <div style="margin-top: 2rem;">
+        <h2 style="font-size: 1.5rem; color: var(--text); margin-bottom: 1.5rem;">Ulasan Peserta (<?php echo $total_ratings; ?>)</h2>
+        <div style="display:flex; flex-direction:column; gap:1rem;">
+            <?php foreach ($reviews as $r): ?>
+            <div style="background: var(--bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; display:flex; gap:1rem;">
+                <img src="<?php echo htmlspecialchars($r['reviewer_picture'] ?: 'https://ui-avatars.com/api/?name=' . urlencode($r['reviewer_name'])); ?>" style="width:40px; height:40px; border-radius:50%; flex-shrink:0; object-fit:cover;">
+                <div style="flex:1;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+                        <span style="font-weight:600; color:var(--text); font-size:0.9rem;"><?php echo htmlspecialchars($r['reviewer_name']); ?></span>
+                        <span style="color:#eab308; font-size:0.85rem; font-weight:600;"><?php echo str_repeat('★', $r['rating']) . str_repeat('☆', 5 - $r['rating']); ?></span>
+                    </div>
+                    <p style="color:var(--text-muted); font-size:0.85rem; margin:0; line-height:1.5;"><?php echo nl2br(htmlspecialchars($r['review'])); ?></p>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
 </div>
 
 <style>
