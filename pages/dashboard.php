@@ -49,6 +49,11 @@ $rem_mins = $remaining_minutes % 60;
 $stmt_upc = $pdo->query("SELECT title, start_date, status FROM championships WHERE status IN ('active', 'upcoming') ORDER BY start_date ASC LIMIT 2");
 $upcoming_events = $stmt_upc->fetchAll();
 
+// Challenge mingguan aktif yang bisa dibuka dari tombol CTA
+$weekly_challenge = $pdo->query("SELECT id, title, status FROM championships WHERE status IN ('active', 'upcoming') ORDER BY FIELD(status, 'active', 'upcoming') DESC, start_date ASC LIMIT 1")->fetch();
+$weekly_challenge_link = $weekly_challenge ? 'index.php?page=championship_detail&id=' . $weekly_challenge['id'] : 'index.php?page=championship';
+$weekly_challenge_title = $weekly_challenge['title'] ?? 'Challenge Mingguan';
+
 // Ambil Broadcast Informasi Terbaru
 $stmt_b = $pdo->query("SELECT title, type, created_at FROM broadcasts WHERE is_active = 1 ORDER BY created_at DESC LIMIT 2");
 $recent_broadcasts = $stmt_b->fetchAll();
@@ -273,11 +278,11 @@ if (!empty($shown_course_ids)) {
                         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
                     </div>
                     <div>
-                        <h3 style="margin-bottom:0.25rem;">Ikuti Challenge Mingguan</h3>
+                        <h3 style="margin-bottom:0.25rem;"><?php echo htmlspecialchars($weekly_challenge_title); ?></h3>
                         <p style="font-size:0.85rem; color:rgba(255,255,255,0.8);">Selesaikan challenge dan dapatkan XP ekstra!</p>
                     </div>
                 </div>
-                <button style="background:white; color:#3a0ca3; padding:0.75rem 1.5rem; border-radius:8px; border:none; font-weight:600; cursor:pointer;">Lihat Challenge &rarr;</button>
+                <a href="<?php echo $weekly_challenge_link; ?>" style="background:white; color:#3a0ca3; padding:0.75rem 1.5rem; border-radius:8px; border:none; font-weight:600; cursor:pointer; text-decoration:none; display:inline-block;">Lihat Challenge &rarr;</a>
             </div>
         </div> <!-- End dash-left -->
 
