@@ -6,6 +6,17 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
+try {
+    $check_target_col = $pdo->query("SHOW COLUMNS FROM users LIKE 'weekly_target'");
+    $target_col_exists = (bool) $check_target_col->fetch();
+
+    if (!$target_col_exists) {
+        $pdo->exec("ALTER TABLE users ADD COLUMN weekly_target INT NOT NULL DEFAULT 600 AFTER profile_color");
+    }
+} catch (PDOException $e) {
+    // abaikan jika server database tidak mendukung ALTER TABLE atau kolom sudah dibuat
+}
+
 // Handle Update Target
 $target_msg = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_target'])) {
