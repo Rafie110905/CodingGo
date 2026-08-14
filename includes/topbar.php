@@ -1,12 +1,30 @@
 <?php
 $user_name = htmlspecialchars($_SESSION['user_name'] ?? 'User');
-$user_class = htmlspecialchars($_SESSION['user_role'] === 'admin' ? 'Administrator' : ($_SESSION['user_category'] ?? 'Learner'));
+$user_class = 'Learner';
+if ($_SESSION['user_role'] === 'admin') {
+    $user_class = 'Administrator';
+}
+
 $user_picture = isset($_SESSION['user_picture']) && $_SESSION['user_picture'] ? htmlspecialchars($_SESSION['user_picture']) : 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2394a3b8"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
 
-// Fetch Notifications
+// Fetch Notifications and update role
 $unread_notifications_count = 0;
 $notifications = [];
 if (isset($_SESSION['user_id'])) {
+    // Fetch actual user access for profile role display
+    $stmt_u = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt_u->execute([$_SESSION['user_id']]);
+    $u_data = $stmt_u->fetch();
+    
+    if ($u_data && $_SESSION['user_role'] !== 'admin') {
+        $allowed = getUserAllowedCategories($u_data);
+        if (!empty($allowed)) {
+            $user_class = end($allowed); // Get highest level allowed (e.g. if SD, SMP -> SMP)
+        } else {
+            $user_class = 'Akses Terbatas';
+        }
+    }
+
     $stmt_notif = $pdo->prepare("SELECT * FROM user_notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 10");
     $stmt_notif->execute([$_SESSION['user_id']]);
     $notifications = $stmt_notif->fetchAll();
