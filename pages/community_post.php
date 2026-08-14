@@ -53,9 +53,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 }
 
 // Get main post
-$stmt = $pdo->prepare("SELECT fp.*, u.name, u.picture, u.profile_title, u.profile_color 
+$my_uid = (int)($_SESSION['user_id'] ?? 0);
+$stmt = $pdo->prepare("SELECT fp.*, u.name, u.picture, u.profile_title, u.profile_color,
+                       (SELECT vote_type FROM forum_votes WHERE target_type='post' AND target_id=fp.id AND user_id=?) as my_vote
                        FROM forum_posts fp JOIN users u ON fp.user_id = u.id WHERE fp.id = ?");
-$stmt->execute([$post_id]);
+$stmt->execute([$my_uid, $post_id]);
 $post = $stmt->fetch();
 
 if (!$post) {
@@ -70,10 +72,11 @@ $post_badges = $stmt_pb->fetchAll();
 $p_border = !empty($post['profile_color']) ? htmlspecialchars($post['profile_color']) : 'transparent';
 
 // Get replies
-$stmt_rep = $pdo->prepare("SELECT fr.*, u.name, u.picture, u.profile_title, u.profile_color 
+$stmt_rep = $pdo->prepare("SELECT fr.*, u.name, u.picture, u.profile_title, u.profile_color,
+                           (SELECT vote_type FROM forum_votes WHERE target_type='reply' AND target_id=fr.id AND user_id=?) as my_vote
                            FROM forum_replies fr JOIN users u ON fr.user_id = u.id 
                            WHERE fr.post_id = ? ORDER BY fr.is_accepted DESC, fr.created_at ASC");
-$stmt_rep->execute([$post_id]);
+$stmt_rep->execute([$my_uid, $post_id]);
 $replies = $stmt_rep->fetchAll();
 ?>
 
@@ -89,34 +92,22 @@ $replies = $stmt_rep->fetchAll();
     <!-- MAIN POST -->
     <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem;">
         <div style="display:flex; gap:1.5rem; align-items:flex-start; margin-bottom:1.5rem; padding-bottom:1.5rem; border-bottom:1px solid var(--dash-border);">
-            <div style="flex-shrink:0;">
-                <?php if($post['is_official']): ?>
-                    <div style="width: 60px; height: 60px; border-radius: 12px; background: var(--dash-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: bold; border:3px solid rgba(59, 130, 246, 0.3); font-family: sans-serif;">
-                        CG
-                    </div>
-                <?php else: ?>
-                    <?php if (!empty($post['picture'])): ?>
-                        <img src="<?php echo htmlspecialchars($post['picture']); ?>" alt="Profile" style="width: 60px; height: 60px; border-radius: 50%; border:3px solid <?php echo $p_border; ?>; object-fit:cover;">
-                    <?php else: ?>
-                        <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--dash-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; border:3px solid <?php echo $p_border; ?>;">
-                            <?php echo substr(htmlspecialchars($post['name']), 0, 1); ?>
-                        </div>
-                    <?php endif; ?>
+            <div style="flex-shrink:0; cursor:pointer; position:relative; width:60px; height:60px;" onclick="showUserProfile(<?php echo (int)$post['user_id']; ?>)" title="Lihat profil <?php echo htmlspecialchars($post['name']); ?>">
+                <?php if (!empty($post['picture'])): ?>
+                    <img src="<?php echo htmlspecialchars($post['picture']); ?>" alt="<?php echo htmlspecialchars($post['name']); ?>" style="width: 60px; height: 60px; border-radius: 50%; border:3px solid <?php echo $p_border; ?>; object-fit:cover; position:absolute; inset:0;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                 <?php endif; ?>
+                <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--dash-primary); color: white; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; border:3px solid <?php echo $p_border; ?>; position:absolute; inset:0; display:<?php echo empty($post['picture']) ? 'flex' : 'none'; ?>;">
+                    <?php echo substr(htmlspecialchars($post['name']), 0, 1); ?>
+                </div>
             </div>
             
             <div style="flex:1;">
                 <div style="display:flex; align-items:center; gap:8px;">
-                    <?php if($post['is_official']): ?>
-                        <span style="font-weight:700; font-size:1.1rem; color:var(--dash-primary); display:flex; align-items:center; gap:4px;">CodingGo Official <svg fill="currentColor" viewBox="0 0 20 20" width="18"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg></span>
-                        <span style="background:rgba(59, 130, 246, 0.1); padding:4px 12px; border-radius:12px; font-size:0.75rem; color:var(--dash-primary); font-weight:700;">📌 PENGUMUMAN</span>
-                    <?php else: ?>
-                        <span style="font-weight:700; font-size:1.1rem; color:var(--dash-text);"><?php echo htmlspecialchars($post['name']); ?></span>
-                        <?php if(!empty($post['profile_title'])): ?>
-                            <span style="background:rgba(0,0,0,0.05); padding:4px 12px; border-radius:12px; font-size:0.75rem; color:<?php echo $p_border !== 'transparent' ? $p_border : 'var(--dash-text-muted)'; ?>; font-weight:700;">
-                                <?php echo htmlspecialchars($post['profile_title']); ?>
-                            </span>
-                        <?php endif; ?>
+                    <span style="font-weight:700; font-size:1.1rem; color:var(--dash-text); cursor:pointer;" onclick="showUserProfile(<?php echo (int)$post['user_id']; ?>)"><?php echo htmlspecialchars($post['name']); ?></span>
+                    <?php if(!empty($post['profile_title'])): ?>
+                        <span style="background:rgba(0,0,0,0.05); padding:4px 12px; border-radius:12px; font-size:0.75rem; color:<?php echo $p_border !== 'transparent' ? $p_border : 'var(--dash-text-muted)'; ?>; font-weight:700;">
+                            <?php echo htmlspecialchars($post['profile_title']); ?>
+                        </span>
                     <?php endif; ?>
                 </div>
                 <div style="font-size:0.8rem; color:var(--dash-text-muted); margin-bottom:0.75rem;">
@@ -154,7 +145,19 @@ $replies = $stmt_rep->fetchAll();
         </div>
 
         <h1 style="margin: 0 0 1rem 0; color:var(--dash-text); font-size:1.5rem; line-height:1.4;"><?php echo htmlspecialchars($post['title']); ?></h1>
-        <div style="color:var(--dash-text); font-size:1.05rem; line-height:1.8; white-space:pre-wrap;"><?php echo htmlspecialchars($post['content']); ?></div>
+        <div id="raw-post-content" style="display:none;"><?php echo htmlspecialchars($post['content'], ENT_QUOTES, 'UTF-8'); ?></div>
+        <div id="rendered-post-content" class="markdown-body" style="background: transparent; color: var(--dash-text); font-family: inherit;"></div>
+
+        <div data-vote-wrap style="display:flex; gap:1.5rem; align-items:center; margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid var(--dash-border);">
+            <button type="button" data-vote-btn="up" onclick="voteOnTarget('post', <?php echo (int)$post['id']; ?>, 'up', this)" style="display:flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer; padding:0; color:<?php echo ($post['my_vote'] === 'up') ? '#3b82f6' : 'var(--dash-text-muted)'; ?>; font-size:0.9rem; font-weight:<?php echo ($post['my_vote'] === 'up') ? '700' : '500'; ?>;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
+                Suka (<span data-vote-count="up"><?php echo $post['upvotes'] ?? 0; ?></span>)
+            </button>
+            <button type="button" data-vote-btn="down" onclick="voteOnTarget('post', <?php echo (int)$post['id']; ?>, 'down', this)" style="display:flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer; padding:0; color:<?php echo ($post['my_vote'] === 'down') ? '#ef4444' : 'var(--dash-text-muted)'; ?>; font-size:0.9rem; font-weight:<?php echo ($post['my_vote'] === 'down') ? '700' : '500'; ?>;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" style="transform:scaleY(-1);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
+                Tidak Suka (<span data-vote-count="down"><?php echo $post['downvotes'] ?? 0; ?></span>)
+            </button>
+        </div>
     </div>
 
     <!-- REPLIES -->
@@ -178,19 +181,18 @@ $replies = $stmt_rep->fetchAll();
                 <?php endif; ?>
 
                 <div style="display:flex; gap:1rem; align-items:flex-start; margin-bottom:1rem;">
-                    <div style="flex-shrink:0;">
+                    <div style="flex-shrink:0; cursor:pointer; position:relative; width:45px; height:45px;" onclick="showUserProfile(<?php echo (int)$r['user_id']; ?>)" title="Lihat profil <?php echo htmlspecialchars($r['name']); ?>">
                         <?php if (!empty($r['picture'])): ?>
-                            <img src="<?php echo htmlspecialchars($r['picture']); ?>" style="width: 45px; height: 45px; border-radius: 50%; border:2px solid <?php echo $r_border; ?>; object-fit:cover;">
-                        <?php else: ?>
-                            <div style="width: 45px; height: 45px; border-radius: 50%; background: var(--dash-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; border:2px solid <?php echo $r_border; ?>;">
-                                <?php echo substr(htmlspecialchars($r['name']), 0, 1); ?>
-                            </div>
+                            <img src="<?php echo htmlspecialchars($r['picture']); ?>" alt="<?php echo htmlspecialchars($r['name']); ?>" style="width: 45px; height: 45px; border-radius: 50%; border:2px solid <?php echo $r_border; ?>; object-fit:cover; position:absolute; inset:0;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                         <?php endif; ?>
+                        <div style="width: 45px; height: 45px; border-radius: 50%; background: var(--dash-primary); color: white; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; border:2px solid <?php echo $r_border; ?>; position:absolute; inset:0; display:<?php echo empty($r['picture']) ? 'flex' : 'none'; ?>;">
+                            <?php echo substr(htmlspecialchars($r['name']), 0, 1); ?>
+                        </div>
                     </div>
                     
                     <div style="flex:1;">
                         <div style="display:flex; align-items:center; gap:8px;">
-                            <span style="font-weight:600; color:var(--dash-text);"><?php echo htmlspecialchars($r['name']); ?></span>
+                            <span style="font-weight:600; color:var(--dash-text); cursor:pointer;" onclick="showUserProfile(<?php echo (int)$r['user_id']; ?>)"><?php echo htmlspecialchars($r['name']); ?></span>
                             <?php if(!empty($r['profile_title'])): ?>
                                 <span style="background:rgba(0,0,0,0.05); padding:2px 8px; border-radius:12px; font-size:0.65rem; color:<?php echo $r_border !== 'transparent' ? $r_border : 'var(--dash-text-muted)'; ?>; font-weight:600;">
                                     <?php echo htmlspecialchars($r['profile_title']); ?>
@@ -239,7 +241,19 @@ $replies = $stmt_rep->fetchAll();
                     </div>
                 </div>
 
-                <div style="color:var(--dash-text); font-size:1rem; line-height:1.6; white-space:pre-wrap; padding-left:calc(45px + 1rem);"><?php echo htmlspecialchars($r['content']); ?></div>
+                <div id="raw-reply-content-<?php echo $r['id']; ?>" style="display:none;"><?php echo htmlspecialchars($r['content'], ENT_QUOTES, 'UTF-8'); ?></div>
+                <div class="markdown-body reply-markdown" data-target="reply-<?php echo $r['id']; ?>" style="background: transparent; color: var(--dash-text); font-family: inherit; padding-left:calc(45px + 1rem);"></div>
+
+                <div data-vote-wrap style="display:flex; gap:1.25rem; align-items:center; margin-top:0.75rem; padding-left:calc(45px + 1rem);">
+                    <button type="button" data-vote-btn="up" onclick="voteOnTarget('reply', <?php echo (int)$r['id']; ?>, 'up', this)" style="display:flex; align-items:center; gap:5px; background:none; border:none; cursor:pointer; padding:0; color:<?php echo ($r['my_vote'] === 'up') ? '#3b82f6' : 'var(--dash-text-muted)'; ?>; font-size:0.8rem; font-weight:<?php echo ($r['my_vote'] === 'up') ? '700' : '500'; ?>;">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
+                        <span data-vote-count="up"><?php echo $r['upvotes'] ?? 0; ?></span>
+                    </button>
+                    <button type="button" data-vote-btn="down" onclick="voteOnTarget('reply', <?php echo (int)$r['id']; ?>, 'down', this)" style="display:flex; align-items:center; gap:5px; background:none; border:none; cursor:pointer; padding:0; color:<?php echo ($r['my_vote'] === 'down') ? '#ef4444' : 'var(--dash-text-muted)'; ?>; font-size:0.8rem; font-weight:<?php echo ($r['my_vote'] === 'down') ? '700' : '500'; ?>;">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" style="transform:scaleY(-1);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
+                        <span data-vote-count="down"><?php echo $r['downvotes'] ?? 0; ?></span>
+                    </button>
+                </div>
             </div>
         <?php endforeach; ?>
     </div>
@@ -250,10 +264,56 @@ $replies = $stmt_rep->fetchAll();
         <form method="POST" action="">
             <input type="hidden" name="action" value="reply">
             <div style="margin-bottom: 1rem;">
-                <textarea name="content" required rows="4" placeholder="Tulis jawaban atau komentar Anda di sini..." style="width: 100%; padding: 1rem; border: 1px solid var(--dash-border); border-radius: 12px; background: var(--dash-bg); color: var(--dash-text); font-family: inherit; resize: vertical;"></textarea>
+                <textarea name="content" required rows="4" placeholder="Tulis jawaban atau komentar Anda di sini... Contoh: ![gambar](https://example.com/image.jpg)" style="width: 100%; padding: 1rem; border: 1px solid var(--dash-border); border-radius: 12px; background: var(--dash-bg); color: var(--dash-text); font-family: inherit; resize: vertical;"></textarea>
             </div>
             <button type="submit" style="background: var(--dash-primary); color: white; border: none; padding: 0.8rem 2rem; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer;">Kirim Balasan</button>
         </form>
     </div>
 
 </div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-dark.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+<script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+
+<style>
+    .markdown-body { background: transparent !important; color: var(--dash-text); font-family: inherit !important; font-size: 1rem; line-height: 1.8; }
+    .markdown-body pre { background-color: #1e1e1e !important; border: 1px solid var(--dash-border); border-radius: 8px; }
+    .markdown-body pre, .markdown-body pre code { font-family: 'Fira Code', 'Consolas', monospace; color: #abb2bf !important; }
+    .markdown-body p code, .markdown-body li code, .markdown-body h1 code, .markdown-body h2 code, .markdown-body h3 code { color: #d63384; background: rgba(214, 51, 132, 0.1); padding: 0.2em 0.4em; border-radius: 4px; font-size: 0.9em; font-family: 'Fira Code', 'Consolas', monospace; }
+    .markdown-body a { color: #3b82f6; text-decoration: none; }
+    .markdown-body a:hover { text-decoration: underline; }
+    .markdown-body img { border-radius: 8px; max-width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .markdown-body pre code span { color: inherit; }
+    .reply-markdown { margin-top: 0.75rem; }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.marked && window.hljs) {
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                highlight: function(code, lang) {
+                    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                    return hljs.highlight(code, { language }).value;
+                }
+            });
+
+            const postRaw = document.getElementById('raw-post-content');
+            if (postRaw) {
+                const rendered = document.getElementById('rendered-post-content');
+                rendered.innerHTML = marked.parse(postRaw.textContent || postRaw.innerText || '');
+            }
+
+            document.querySelectorAll('.reply-markdown').forEach(function (el) {
+                const targetId = el.getAttribute('data-target');
+                const raw = document.getElementById('raw-reply-content-' + targetId.replace('reply-', ''));
+                if (raw) {
+                    el.innerHTML = marked.parse(raw.textContent || raw.innerText || '');
+                }
+            });
+        }
+    });
+</script>

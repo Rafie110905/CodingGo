@@ -31,11 +31,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 }
 
 // Fetch all posts with user data
-$stmt = $pdo->query("SELECT fp.*, u.name, u.picture, u.profile_title, u.profile_color, 
-                     (SELECT COUNT(*) FROM forum_replies WHERE post_id = fp.id) as reply_count 
+$my_uid = (int)($_SESSION['user_id'] ?? 0);
+$stmt = $pdo->prepare("SELECT fp.*, u.name, u.picture, u.profile_title, u.profile_color, 
+                     (SELECT COUNT(*) FROM forum_replies WHERE post_id = fp.id) as reply_count,
+                     (SELECT vote_type FROM forum_votes WHERE target_type='post' AND target_id=fp.id AND user_id=?) as my_vote
                      FROM forum_posts fp 
                      JOIN users u ON fp.user_id = u.id 
-                     ORDER BY fp.is_official DESC, fp.created_at DESC");
+                     ORDER BY fp.created_at DESC");
+$stmt->execute([$my_uid]);
 $posts = $stmt->fetchAll();
 
 // Fetch Top 10 Leaderboard
@@ -72,40 +75,28 @@ $top10 = $stmt_top->fetchAll();
                 $border_color = !empty($p['profile_color']) ? htmlspecialchars($p['profile_color']) : 'transparent';
                 ?>
                 <div style="position:relative;">
-                    <div style="background: var(--dash-sidebar); border: 1px solid <?php echo $p['is_official'] ? 'var(--dash-primary)' : 'var(--dash-border)'; ?>; border-radius: 16px; padding: 1.5rem; transition: transform 0.2s, box-shadow 0.2s; <?php echo $p['is_official'] ? 'box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);' : ''; ?>" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 25px -5px rgba(0,0,0,0.05)'" onmouseout="this.style.transform='none'; this.style.boxShadow='<?php echo $p['is_official'] ? '0 0 0 2px rgba(59, 130, 246, 0.15)' : 'none'; ?>'">
+                    <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; padding: 1.5rem; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 25px -5px rgba(0,0,0,0.05)'" onmouseout="this.style.transform='none'; this.style.boxShadow='none'">
 
                         
                         <div style="display:flex; gap:1rem; align-items:flex-start; margin-bottom:1rem;">
                             <!-- Avatar -->
-                            <div style="flex-shrink:0;">
-                                <?php if($p['is_official']): ?>
-                                    <div style="width: 50px; height: 50px; border-radius: 12px; background: var(--dash-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: bold; border:3px solid rgba(59, 130, 246, 0.3); font-family: sans-serif;">
-                                        CG
-                                    </div>
-                                <?php else: ?>
-                                    <?php if (!empty($p['picture'])): ?>
-                                        <img src="<?php echo htmlspecialchars($p['picture']); ?>" alt="Profile" style="width: 50px; height: 50px; border-radius: 50%; border:3px solid <?php echo $border_color; ?>; object-fit:cover;">
-                                    <?php else: ?>
-                                        <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--dash-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; border:3px solid <?php echo $border_color; ?>;">
-                                            <?php echo substr(htmlspecialchars($p['name']), 0, 1); ?>
-                                        </div>
-                                    <?php endif; ?>
+                            <div style="flex-shrink:0; cursor:pointer; position:relative; width:50px; height:50px;" onclick="showUserProfile(<?php echo (int)$p['user_id']; ?>)" title="Lihat profil <?php echo htmlspecialchars($p['name']); ?>">
+                                <?php if (!empty($p['picture'])): ?>
+                                    <img src="<?php echo htmlspecialchars($p['picture']); ?>" alt="<?php echo htmlspecialchars($p['name']); ?>" style="width: 50px; height: 50px; border-radius: 50%; border:3px solid <?php echo $border_color; ?>; object-fit:cover; position:absolute; inset:0;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                 <?php endif; ?>
+                                <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--dash-primary); color: white; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; border:3px solid <?php echo $border_color; ?>; position:absolute; inset:0; display:<?php echo empty($p['picture']) ? 'flex' : 'none'; ?>;">
+                                    <?php echo substr(htmlspecialchars($p['name']), 0, 1); ?>
+                                </div>
                             </div>
                             
                             <!-- Author Info -->
                             <div style="flex:1;">
                                 <div style="display:flex; align-items:center; gap:8px;">
-                                    <?php if($p['is_official']): ?>
-                                        <span style="font-weight:700; color:var(--dash-primary); display:flex; align-items:center; gap:4px;">CodingGo Official <svg fill="currentColor" viewBox="0 0 20 20" width="16"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg></span>
-                                        <span style="background:rgba(59, 130, 246, 0.1); padding:2px 8px; border-radius:12px; font-size:0.7rem; color:var(--dash-primary); font-weight:700;">📌 PENGUMUMAN</span>
-                                    <?php else: ?>
-                                        <span style="font-weight:600; color:var(--dash-text);"><?php echo htmlspecialchars($p['name']); ?></span>
-                                        <?php if(!empty($p['profile_title'])): ?>
-                                            <span style="background:rgba(0,0,0,0.05); padding:2px 8px; border-radius:12px; font-size:0.7rem; color:<?php echo $border_color !== 'transparent' ? $border_color : 'var(--dash-text-muted)'; ?>; font-weight:600;">
-                                                <?php echo htmlspecialchars($p['profile_title']); ?>
-                                            </span>
-                                        <?php endif; ?>
+                                    <span style="font-weight:600; color:var(--dash-text); cursor:pointer;" onclick="showUserProfile(<?php echo (int)$p['user_id']; ?>)"><?php echo htmlspecialchars($p['name']); ?></span>
+                                    <?php if(!empty($p['profile_title'])): ?>
+                                        <span style="background:rgba(0,0,0,0.05); padding:2px 8px; border-radius:12px; font-size:0.7rem; color:<?php echo $border_color !== 'transparent' ? $border_color : 'var(--dash-text-muted)'; ?>; font-weight:600;">
+                                            <?php echo htmlspecialchars($p['profile_title']); ?>
+                                        </span>
                                     <?php endif; ?>
                                 </div>
                                 <div style="font-size:0.75rem; color:var(--dash-text-muted); margin-bottom:0.5rem;">
@@ -113,7 +104,7 @@ $top10 = $stmt_top->fetchAll();
                                 </div>
                                 
                                 <!-- Badges Showcase -->
-                                <?php if(!$p['is_official'] && count($user_badges) > 0): ?>
+                                <?php if(count($user_badges) > 0): ?>
                                     <div style="display:flex; gap:4px; flex-wrap:wrap;">
                                         <?php foreach($user_badges as $b): ?>
                                             <?php if(!empty($b['icon_url'])): ?>
@@ -151,11 +142,15 @@ $top10 = $stmt_top->fetchAll();
                         </p>
 
                         <!-- Interaction Stats -->
-                        <div style="display:flex; gap:1.5rem; align-items:center;">
-                            <div style="display:flex; align-items:center; gap:6px; color:var(--dash-text-muted); font-size:0.85rem; font-weight:500;">
+                        <div style="display:flex; gap:1.5rem; align-items:center;" data-vote-wrap onclick="event.stopPropagation();">
+                            <button type="button" data-vote-btn="up" onclick="voteOnTarget('post', <?php echo (int)$p['id']; ?>, 'up', this)" style="display:flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer; padding:0; color:<?php echo ($p['my_vote'] === 'up') ? '#3b82f6' : 'var(--dash-text-muted)'; ?>; font-size:0.85rem; font-weight:<?php echo ($p['my_vote'] === 'up') ? '700' : '500'; ?>;">
                                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
-                                <?php echo $p['upvotes'] ?? 0; ?>
-                            </div>
+                                <span data-vote-count="up"><?php echo $p['upvotes'] ?? 0; ?></span>
+                            </button>
+                            <button type="button" data-vote-btn="down" onclick="voteOnTarget('post', <?php echo (int)$p['id']; ?>, 'down', this)" style="display:flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer; padding:0; color:<?php echo ($p['my_vote'] === 'down') ? '#ef4444' : 'var(--dash-text-muted)'; ?>; font-size:0.85rem; font-weight:<?php echo ($p['my_vote'] === 'down') ? '700' : '500'; ?>;">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" style="transform:scaleY(-1);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
+                                <span data-vote-count="down"><?php echo $p['downvotes'] ?? 0; ?></span>
+                            </button>
                             <div style="display:flex; align-items:center; gap:6px; color:var(--dash-text-muted); font-size:0.85rem; font-weight:500;">
                                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
                                 <?php echo $p['reply_count']; ?> Balasan

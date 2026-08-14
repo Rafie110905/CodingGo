@@ -15,6 +15,22 @@ $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->execute([$user_id]);
 $user = $stmt->fetch();
 
+// Daftar animasi banner dari LottieFiles (link video MP4 resmi, stabil untuk hotlink + gambar preview asli)
+$LOTTIE_BANNERS = [
+    'https://assets-v2.lottiefiles.com/a/618fc384-1184-11ee-94d3-7fa9529e93c3/OIgiq15Qro.mp4' => [
+        'label' => 'Champion',
+        'poster' => 'https://assets-v2.lottiefiles.com/a/618fc384-1184-11ee-94d3-7fa9529e93c3/og-image-Vt8wr2kyGJ.png',
+    ],
+    'https://assets-v2.lottiefiles.com/a/745fc364-117b-11ee-b7ec-9f18a8a356e0/8lgzK4zlmD.mp4' => [
+        'label' => 'Trophy',
+        'poster' => 'https://assets-v2.lottiefiles.com/a/745fc364-117b-11ee-b7ec-9f18a8a356e0/og-image-et6mtZ3AmM.png',
+    ],
+    'https://assets-v2.lottiefiles.com/a/ed5ae48c-117c-11ee-afee-879cb97bcc98/HdLCGkInQ3.mp4' => [
+        'label' => 'Winner Badge',
+        'poster' => 'https://assets-v2.lottiefiles.com/a/ed5ae48c-117c-11ee-afee-879cb97bcc98/og-image-PW3bvKtIrm.png',
+    ],
+];
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
@@ -50,6 +66,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset($_POST['profile_title']) && ($user['total_badges'] >= 5 || $_SESSION['user_role'] === 'admin')) {
                 $p_title = trim($_POST['profile_title']);
                 $pdo->prepare("UPDATE users SET profile_title=? WHERE id=?")->execute([$p_title, $user_id]);
+            }
+            if (isset($_POST['banner_gif']) && ($user['total_badges'] >= 10 || $_SESSION['user_role'] === 'admin')) {
+                $available_banner_files = glob('src/img/profile-banner-*.gif') ?: [];
+                $allowed_banners = [''];
+                foreach ($available_banner_files as $file) {
+                    $allowed_banners[] = basename($file);
+                }
+                foreach (array_keys($LOTTIE_BANNERS) as $url) {
+                    $allowed_banners[] = $url;
+                }
+
+                $b_gif = $_POST['banner_gif'];
+                if (in_array($b_gif, $allowed_banners, true)) {
+                    $pdo->prepare("UPDATE users SET banner_gif=? WHERE id=?")->execute([$b_gif ?: null, $user_id]);
+                }
             }
             
             // Update session if needed
@@ -160,6 +191,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <?php if($user['total_badges'] < 5 && $_SESSION['user_role'] !== 'admin'): ?> <span style="color:#ef4444; font-size:0.7rem;">(Butuh 5 Badge)</span> <?php else: ?> <span style="color:#10b981; font-size:0.7rem;">(Unlocked!)</span> <?php endif; ?>
                         </label>
                         <input type="text" name="profile_title" value="<?php echo htmlspecialchars($user['profile_title'] ?? 'Novice Coder'); ?>" placeholder="Contoh: Algo Master" style="width: 100%; padding: 0.75rem; border: 1px solid var(--dash-border); border-radius: 8px; background: var(--dash-bg); color: var(--dash-text); font-family: inherit;">
+                    </div>
+                </div>
+
+                <div style="margin-top:2rem; padding-top:1.5rem; border-top:1px dashed rgba(67, 97, 238, 0.3); <?php echo ($user['total_badges'] < 10 && $_SESSION['user_role'] !== 'admin') ? 'opacity:0.5; pointer-events:none;' : ''; ?>">
+                    <label style="display: block; margin-bottom: 0.75rem; font-size: 0.85rem; font-weight: 600; color: var(--dash-text);">
+                        Banner Animasi Profil
+                        <?php if($user['total_badges'] < 10 && $_SESSION['user_role'] !== 'admin'): ?> <span style="color:#ef4444; font-size:0.7rem;">(Butuh 10 Badge)</span> <?php else: ?> <span style="color:#10b981; font-size:0.7rem;">(Unlocked!)</span> <?php endif; ?>
+                    </label>
+                    <p style="font-size:0.8rem; color:var(--dash-text-muted); margin-bottom:1rem;">Pilih banner animasi yang akan tampil di kartu profilmu saat dilihat orang lain.</p>
+
+                    <?php
+                        $banner_options = ['' => ['label' => 'Tanpa Banner', 'poster' => null]];
+                        $available_banners = glob('src/img/profile-banner-*.gif') ?: [];
+                        sort($available_banners);
+                        foreach ($available_banners as $file) {
+                            $filename = basename($file);
+                            $banner_options[$filename] = ['label' => 'Banner ' . count($banner_options), 'poster' => 'src/img/' . $filename];
+                        }
+                        foreach ($LOTTIE_BANNERS as $url => $meta) {
+                            $banner_options[$url] = ['label' => $meta['label'], 'poster' => $meta['poster']];
+                        }
+
+                        $current_banner = $user['banner_gif'] ?? '';
+                    ?>
+                    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                        <?php foreach ($banner_options as $file => $meta): ?>
+                            <label style="cursor:pointer; display:block;">
+                                <input type="radio" name="banner_gif" value="<?php echo htmlspecialchars($file); ?>" <?php echo ($current_banner === $file) ? 'checked' : ''; ?> style="position:absolute; opacity:0;" onchange="document.querySelectorAll('.banner-option').forEach(el => el.style.borderColor = 'var(--dash-border)'); this.nextElementSibling.style.borderColor = 'var(--dash-primary)';">
+                                <div class="banner-option" style="border: 2px solid <?php echo ($current_banner === $file) ? 'var(--dash-primary)' : 'var(--dash-border)'; ?>; border-radius: 10px; overflow:hidden; background:var(--dash-bg);">
+                                    <?php if ($file === ''): ?>
+                                        <div style="height:60px; display:flex; align-items:center; justify-content:center; color:var(--dash-text-muted); font-size:0.7rem;">Tanpa Banner</div>
+                                    <?php else: ?>
+                                        <img src="<?php echo htmlspecialchars($meta['poster']); ?>" alt="<?php echo htmlspecialchars($meta['label']); ?>" style="width:100%; height:60px; object-fit:cover; display:block;">
+                                    <?php endif; ?>
+                                    <div style="text-align:center; font-size:0.7rem; padding:4px; color:var(--dash-text); background:rgba(0,0,0,0.15);"><?php echo htmlspecialchars($meta['label']); ?></div>
+                                </div>
+                            </label>
+                        <?php endforeach; ?>
                     </div>
                 </div>
             </div>
