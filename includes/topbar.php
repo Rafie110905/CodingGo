@@ -1,11 +1,19 @@
 <?php
-$user_name = htmlspecialchars($_SESSION['user_name'] ?? 'User');
+$user_name = $_SESSION['user_name'] ?? 'User';
+$user_name_display = htmlspecialchars($user_name);
 $user_class = 'Learner';
 if ($_SESSION['user_role'] === 'admin') {
     $user_class = 'Administrator';
 }
 
-$user_picture = isset($_SESSION['user_picture']) && $_SESSION['user_picture'] ? htmlspecialchars($_SESSION['user_picture']) : 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2394a3b8"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+$initials = strtoupper(substr($user_name, 0, 1));
+$parts = preg_split('/\s+/', trim($user_name));
+if (count($parts) > 1) {
+    $initials = strtoupper(substr($parts[0], 0, 1) . substr(end($parts), 0, 1));
+}
+$user_initials = htmlspecialchars($initials);
+
+$user_picture = isset($_SESSION['user_picture']) && $_SESSION['user_picture'] ? htmlspecialchars($_SESSION['user_picture']) : '';
 
 // Fetch Notifications and update role
 $unread_notifications_count = 0;
@@ -78,9 +86,11 @@ if (isset($_SESSION['user_id'])) {
 
         <div class="profile-dropdown-wrapper" style="position:relative; display:flex; align-items:center;">
             <div class="dash-profile" style="cursor:pointer; transition:background 0.2s;" onclick="document.getElementById('profile-dropdown').classList.toggle('show')">
-                <img src="<?php echo $user_picture; ?>" alt="Profile" referrerpolicy="no-referrer">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #22c55e, #16a34a); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.2);">
+                    <?php echo $user_initials; ?>
+                </div>
                 <div class="dash-profile-info">
-                    <span class="dash-profile-name" style="color:var(--dash-text);"><?php echo explode(' ', $user_name)[0]; ?></span>
+                    <span class="dash-profile-name" style="color:var(--dash-text);"><?php echo explode(' ', $user_name_display)[0]; ?></span>
                     <span class="dash-profile-role" style="color:var(--dash-text-muted);"><?php echo $user_class; ?></span>
                 </div>
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" style="color:var(--dash-text-muted); margin-left:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>

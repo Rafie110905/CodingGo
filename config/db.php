@@ -198,12 +198,15 @@ function ensureDatabaseBootstrap(PDO $pdo): void {
             }
         }
 
-        $exam = $pdo->query("SELECT id FROM exams WHERE course_id = " . $course_id . " ORDER BY id ASC LIMIT 1")->fetch();
+        $exam = $pdo->query("SELECT id, min_score_passing FROM exams WHERE course_id = " . $course_id . " ORDER BY id ASC LIMIT 1")->fetch();
         $exam_id = (int)($exam['id'] ?? 0);
         if (!$exam_id) {
             $pdo->prepare("INSERT INTO exams (course_id, title, type, min_score_passing) VALUES (?, ?, 'quiz', 70)")
                 ->execute([$course_id, $umum_course['exam_title']]);
             $exam_id = (int)$pdo->lastInsertId();
+        } else {
+            $pdo->prepare("UPDATE exams SET min_score_passing = 70 WHERE id = ?")
+                ->execute([$exam_id]);
         }
 
         $question_count = (int)$pdo->query("SELECT COUNT(*) FROM exam_questions WHERE exam_id = " . $exam_id)->fetchColumn();
@@ -230,6 +233,21 @@ function ensureDatabaseBootstrap(PDO $pdo): void {
             }
         }
     }
+
+    $pdo->query("UPDATE exams e
+        JOIN (
+            SELECT exam_id, COALESCE(SUM(points), 0) AS total_points
+            FROM exam_questions
+            GROUP BY exam_id
+        ) q ON q.exam_id = e.id
+        SET e.min_score_passing = CASE
+            WHEN q.total_points >= 70 THEN 70
+            ELSE q.total_points
+        END
+        WHERE e.min_score_passing != CASE
+            WHEN q.total_points >= 70 THEN 70
+            ELSE q.total_points
+        END");
 }
 
 ensureDatabaseBootstrap($pdo);

@@ -39,12 +39,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $stmt_ins = $pdo->prepare("INSERT INTO exam_questions (exam_id, question_type, question_text, option_a, option_b, option_c, option_d, correct_answer, points) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt_ins->execute([$exam_id, $question_type, $question_text, $option_a, $option_b, $option_c, $option_d, $correct_answer, $points]);
+
+        $stmt_total = $pdo->prepare("SELECT COALESCE(SUM(points), 0) AS total_points FROM exam_questions WHERE exam_id = ?");
+        $stmt_total->execute([$exam_id]);
+        $total_points = (int)$stmt_total->fetchColumn();
+        $target_pass = $total_points >= 70 ? 70 : $total_points;
+        $pdo->prepare("UPDATE exams SET min_score_passing = ? WHERE id = ?")
+            ->execute([$target_pass, $exam_id]);
+
         header("Location: index.php?page=admin_questions&exam_id=" . $exam_id);
         exit();
     } elseif ($action === 'delete_question') {
         $question_id = $_POST['question_id'];
         $stmt_del = $pdo->prepare("DELETE FROM exam_questions WHERE id = ? AND exam_id = ?");
         $stmt_del->execute([$question_id, $exam_id]);
+
+        $stmt_total = $pdo->prepare("SELECT COALESCE(SUM(points), 0) AS total_points FROM exam_questions WHERE exam_id = ?");
+        $stmt_total->execute([$exam_id]);
+        $total_points = (int)$stmt_total->fetchColumn();
+        $target_pass = $total_points >= 70 ? 70 : $total_points;
+        $pdo->prepare("UPDATE exams SET min_score_passing = ? WHERE id = ?")
+            ->execute([$target_pass, $exam_id]);
+
         header("Location: index.php?page=admin_questions&exam_id=" . $exam_id);
         exit();
     }

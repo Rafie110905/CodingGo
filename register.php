@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once 'config/db.php';
 
 // Cek Pengaturan Pendaftaran
@@ -8,6 +9,58 @@ $settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
 
 $enable_google = $settings['enable_registration_google'] ?? '1';
 $enable_manual = $settings['enable_registration_manual'] ?? '1';
+
+$register_error = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
+    if ($enable_manual !== '1') {
+        $register_error = 'Pendaftaran manual saat ini sedang ditutup.';
+    } else {
+        $name = trim($_POST['name'] ?? '');
+        $email = strtolower(trim($_POST['email'] ?? ''));
+        $password = $_POST['password'] ?? '';
+
+        if ($name === '' || $email === '' || $password === '') {
+            $register_error = 'Nama, email, dan password wajib diisi.';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $register_error = 'Format email tidak valid.';
+        } elseif (strlen($password) < 6) {
+            $register_error = 'Password minimal 6 karakter.';
+        } else {
+            $check = $pdo->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
+            $check->execute([$email]);
+
+            if ($check->fetch()) {
+                $register_error = 'Email sudah terdaftar. Silakan masuk dengan akun lain.';
+            } else {
+                $hashed = password_hash($password, PASSWORD_DEFAULT);
+                $insert = $pdo->prepare("INSERT INTO users (name, email, password, role, created_at) VALUES (?, ?, ?, 'user', NOW())");
+                $insert->execute([$name, $email, $hashed]);
+
+                $user = $pdo->prepare("SELECT * FROM users WHERE email = ? LIMIT 1");
+                $user->execute([$email]);
+                $loggedUser = $user->fetch();
+
+                $_SESSION['user_logged_in'] = true;
+                $_SESSION['user_id'] = (int)$loggedUser['id'];
+                $_SESSION['user_name'] = $loggedUser['name'];
+                $_SESSION['user_email'] = $loggedUser['email'];
+                $_SESSION['user_picture'] = $loggedUser['picture'] ?? '';
+                $_SESSION['user_role'] = $loggedUser['role'] ?? 'user';
+                $_SESSION['user_category'] = $loggedUser['category'] ?? 'Umum';
+
+                $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?")->execute([$loggedUser['id']]);
+
+                if (empty($loggedUser['birth_date'])) {
+                    header('Location: index.php?page=setup_profile');
+                    exit();
+                }
+
+                header('Location: index.php?page=dashboard');
+                exit();
+            }
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -209,7 +262,9 @@ $enable_manual = $settings['enable_registration_manual'] ?? '1';
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 250px;
+            height: 300px;
+            transform: scale(1.15);
+            transform-origin: center bottom;
         }
 
         /* Right Side (Form) */
@@ -414,24 +469,11 @@ $enable_manual = $settings['enable_registration_manual'] ?? '1';
                 <p>Masuk untuk melanjutkan perjalanan belajar coding yang aman dan efektif.</p>
                 
                 <div class="illustration">
-                    <!-- Simple CSS/SVG representation of the laptop illustration -->
-                    <div style="background-image: url('/src/img/programing.png'); background-size: cover; background-position: center; width:280px; height:180px; ">
-                        <div style="padding:8px; display:flex;">
-                            <!-- <div style="width:10px; height:10px; border-radius:50%; background:#ef4444;"></div>
-                            <div style="width:10px; height:10px; border-radius:50%; background:#f59e0b;"></div>
-                            <div style="width:10px; height:10px; border-radius:50%; background:#10b981;"></div> -->
-                        </div>
-                        <!-- <div style="padding:1rem; color:#94a3b8; font-family:monospace; font-size:0.75rem; line-height:1.6;">
-                            <span style="color:#c678dd;">const</span> belajar = <span style="color:#61afef;">true</span>;<br>
-                            <span style="color:#c678dd;">if</span> (coding) {<br>
-                            &nbsp;&nbsp;<span style="color:#e06c75;">sukses()</span>;<br>
-                            }
-                        </div> -->
-                    </div>
+                    <img src="src/img/programing.png" alt="Laptop coding illustration" style="width: 360px; height: 220px; object-fit: contain; filter: drop-shadow(0 20px 28px rgba(59, 130, 246, 0.22));">
                     <!-- Badges -->
-                    <div style="position:absolute; top:20px; right:10px; background:#f59e0b; color:white; padding:4px 12px; border-radius:8px; font-weight:bold; font-size:0.75rem; transform:rotate(5deg); box-shadow:0 4px 6px rgba(0,0,0,0.1);">JS</div>
-                    <div style="position:absolute; bottom:40px; right:-10px; background:#3b82f6; color:white; padding:4px 12px; border-radius:8px; font-weight:bold; font-size:0.75rem; transform:rotate(-5deg); box-shadow:0 4px 6px rgba(0,0,0,0.1);">Python</div>
-                    <div style="position:absolute; top:50px; left:10px; background:#ef4444; color:white; padding:4px 12px; border-radius:8px; font-weight:bold; font-size:0.75rem; transform:rotate(-10deg); box-shadow:0 4px 6px rgba(0,0,0,0.1);">HTML</div>
+                    <div style="position:absolute; top:18px; right:30px; background:#f59e0b; color:white; padding:4px 12px; border-radius:8px; font-weight:bold; font-size:0.75rem; transform:rotate(5deg); box-shadow:0 4px 6px rgba(0,0,0,0.1);">JS</div>
+                    <div style="position:absolute; bottom:50px; right:0; background:#3b82f6; color:white; padding:4px 12px; border-radius:8px; font-weight:bold; font-size:0.75rem; transform:rotate(-5deg); box-shadow:0 4px 6px rgba(0,0,0,0.1);">Python</div>
+                    <div style="position:absolute; top:70px; left:20px; background:#ef4444; color:white; padding:4px 12px; border-radius:8px; font-weight:bold; font-size:0.75rem; transform:rotate(-10deg); box-shadow:0 4px 6px rgba(0,0,0,0.1);">HTML</div>
                 </div>
             </div>
 
@@ -443,27 +485,34 @@ $enable_manual = $settings['enable_registration_manual'] ?? '1';
                 <h2>Akun Baru <span style="color:var(--primary);">CodingGo</span></h2>
                 <p class="subtitle">Isi data sebelum memulai pengalaman belajar</p>
 
+                <?php if ($register_error): ?>
+                    <div style="background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; text-align: center; font-weight: 600; width: 100%;">
+                        <?php echo htmlspecialchars($register_error); ?>
+                    </div>
+                <?php endif; ?>
+
                 <?php if ($enable_manual === '1'): ?>
-                <form style="width: 100%;">
+                <form method="POST" action="" style="width: 100%;">
+                    <input type="hidden" name="register_submit" value="1">
                     <div class="form-group">
                         <label>Nama Lengkap</label>
                         <div class="input-wrapper">
                             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                            <input type="text" placeholder="Masukkan Nama Lengkap kamu">
+                            <input type="text" name="name" placeholder="Masukkan Nama Lengkap kamu" required>
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Email</label>
                         <div class="input-wrapper">
                             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                            <input type="email" placeholder="Masukkan email kamu">
+                            <input type="email" name="email" placeholder="Masukkan email kamu" required>
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Password</label>
                         <div class="input-wrapper">
                             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                            <input type="password" placeholder="Masukkan password kamu" id="password-input">
+                            <input type="password" name="password" placeholder="Masukkan password kamu" id="password-input" required>
                             <svg class="toggle-password" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
                         </div>
                     </div>
@@ -475,7 +524,7 @@ $enable_manual = $settings['enable_registration_manual'] ?? '1';
                         <a href="#" class="forgot-link">Lupa password?</a>
                     </div>
 
-                    <button type="button" class="btn btn-primary btn-full">Daftar Sekarang</button>
+                    <button type="submit" class="btn btn-primary btn-full">Daftar Sekarang</button>
                     
                     <?php if ($enable_google === '1'): ?>
                     <div class="divider">ATAU</div>

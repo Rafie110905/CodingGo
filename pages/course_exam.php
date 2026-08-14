@@ -44,6 +44,7 @@ foreach ($questions as $q) {
 $show_result = false;
 $score = 0;
 $passed = false;
+$review_questions = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'submit_exam') {
     // Penilaian
@@ -51,9 +52,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     foreach ($questions as $q) {
         $q_id = $q['id'];
         $user_answer = $_POST['q_' . $q_id] ?? '';
-        if ($user_answer === $q['correct_answer']) {
+        $is_correct = ($user_answer !== '' && $user_answer === $q['correct_answer']);
+        if ($is_correct) {
             $score += $q['points'];
         }
+
+        $review_questions[] = [
+            'question_text' => $q['question_text'],
+            'selected_answer' => $user_answer,
+            'correct_answer' => $q['correct_answer'],
+            'points' => $q['points'],
+            'is_correct' => $is_correct,
+            'option_a' => $q['option_a'],
+            'option_b' => $q['option_b'],
+            'option_c' => $q['option_c'],
+            'option_d' => $q['option_d'],
+        ];
     }
     
     // Normalisasi skor ke skala 100 jika mau, atau biarkan poin absolut
@@ -265,6 +279,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem;">KKM</div>
                     <div style="font-size: 2.1rem; font-weight: bold; color: var(--text);"><?php echo $exam['min_score_passing']; ?></div>
                 </div>
+            </div>
+
+            <div style="margin: 2rem 0 2.5rem; text-align:left;">
+                <h2 style="font-size: 1.5rem; color: var(--text); margin-bottom: 1rem;">Detail Jawaban Soal</h2>
+                <?php foreach ($review_questions as $index => $review): ?>
+                    <?php
+                        $selected_label = strtoupper($review['selected_answer'] ?? '');
+                        $correct_label = strtoupper($review['correct_answer'] ?? '');
+                        $option_map = ['a' => $review['option_a'], 'b' => $review['option_b'], 'c' => $review['option_c'], 'd' => $review['option_d']];
+                        $selected_text = $option_map[$review['selected_answer']] ?? 'Tidak dijawab';
+                        $correct_text = $option_map[$review['correct_answer']] ?? 'Belum ada kunci';
+                    ?>
+                    <div style="background: var(--bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 1rem 1.1rem; margin-bottom: 0.9rem;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:0.75rem; flex-wrap:wrap; margin-bottom: 0.65rem;">
+                            <div style="font-weight: 700; color: var(--text);">Soal <?php echo $index + 1; ?></div>
+                            <span style="padding: 0.3rem 0.7rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; background: <?php echo $review['is_correct'] ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)'; ?>; color: <?php echo $review['is_correct'] ? '#10b981' : '#ef4444'; ?>;">
+                                <?php echo $review['is_correct'] ? 'BENAR' : 'SALAH'; ?>
+                            </span>
+                        </div>
+                        <p style="margin: 0 0 0.75rem; color: var(--text); line-height: 1.5; font-size: 0.96rem;">
+                            <?php echo nl2br(htmlspecialchars($review['question_text'])); ?>
+                        </p>
+                        <div style="display:grid; gap: 0.55rem; font-size: 0.9rem;">
+                            <div style="color: var(--text-muted);">
+                                <strong style="color: var(--text);">Jawaban Anda:</strong>
+                                <span style="color: <?php echo $review['is_correct'] ? '#10b981' : '#ef4444'; ?>; font-weight:600;">
+                                    <?php echo htmlspecialchars($selected_label ? $selected_label . '. ' . $selected_text : 'Tidak dijawab'); ?>
+                                </span>
+                            </div>
+                            <div style="color: var(--text-muted);">
+                                <strong style="color: var(--text);">Jawaban Benar:</strong>
+                                <span style="color: #10b981; font-weight:600;">
+                                    <?php echo htmlspecialchars($correct_label . '. ' . $correct_text); ?>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
             </div>
 
             <div style="display:flex; justify-content:center; gap: 1rem; flex-wrap:wrap;">
