@@ -16,6 +16,9 @@ if (!$course) {
     echo "<div class='container' style='padding:4rem 0; text-align:center;'><h3>Kelas tidak ditemukan.</h3></div>";
     exit();
 }
+?>
+<script>window.currentCourseId = <?php echo (int)$course_id; ?>;</script>
+<?php
 
 // Ambil jumlah bab materi
 $stmt_mat = $pdo->prepare("SELECT COUNT(*) as total, SUM(xp_reward) as total_xp FROM materials WHERE course_id = ?");
@@ -288,7 +291,7 @@ $reviews = $stmt_reviews->fetchAll();
                     </p>
                     <div style="background: rgba(245, 158, 11, 0.1); padding: 1rem; border-radius: 8px; border: 1px dashed #f59e0b;">
                         <div style="font-weight: 600; color: #d97706; margin-bottom: 0.25rem; font-size: 0.9rem;">Hadiah Akhir:</div>
-                        <div style="color: #92400e; font-size: 0.85rem;">Selesaikan semua materi dan ujian untuk mendapatkan Badge Eksklusif di profilmu!</div>
+                        <div style="color: #92400e; font-size: 0.85rem;">Selesaikan semua materi dan ujian untuk mendapatkan Sertifikat dan Badge Eksklusif di profilmu!</div>
                     </div>
                 </div>
 

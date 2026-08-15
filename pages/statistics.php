@@ -35,12 +35,12 @@ $stmt_target->execute([$user_id]);
 $current_target = $stmt_target->fetchColumn() ?: 600;
 
 // Get total learning time
-$stmt = $pdo->prepare("SELECT COALESCE(SUM(time_spent), 0) FROM user_learning_time WHERE user_id = ?");
+$stmt = $pdo->prepare("SELECT COALESCE(SUM(time_spent)/60, 0) FROM user_learning_time WHERE user_id = ?");
 $stmt->execute([$user_id]);
-$total_minutes = $stmt->fetchColumn();
+$total_minutes = (int)$stmt->fetchColumn();
 
 // Get weekly learning time (last 7 days)
-$stmt_week = $pdo->prepare("SELECT COALESCE(SUM(time_spent), 0) FROM user_learning_time WHERE user_id = ? AND log_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
+$stmt_week = $pdo->prepare("SELECT COALESCE(SUM(time_spent)/60, 0) FROM user_learning_time WHERE user_id = ? AND log_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
 $stmt_week->execute([$user_id]);
 $weekly_minutes = (int)$stmt_week->fetchColumn();
 
@@ -91,10 +91,31 @@ for ($i = 6; $i >= 0; $i--) {
     $display_date = date('d M', strtotime("-$i days"));
     $chart_labels[] = $display_date;
     
-    $stmt = $pdo->prepare("SELECT time_spent FROM user_learning_time WHERE user_id = ? AND log_date = ?");
+    $stmt = $pdo->prepare("SELECT COALESCE(SUM(time_spent)/60, 0) FROM user_learning_time WHERE user_id = ? AND log_date = ?");
     $stmt->execute([$user_id, $date]);
     $spent = $stmt->fetchColumn();
-    $chart_data[] = $spent ? (int)$spent : 0;
+    $chart_data[] = $spent ? round((float)$spent, 2) : 0;
+}
+
+// Get Breakdown time per course
+$stmt_breakdown = $pdo->prepare("
+    SELECT ult.course_id, c.title, COALESCE(SUM(ult.time_spent)/60, 0) as total_mins
+    FROM user_learning_time ult
+    LEFT JOIN courses c ON ult.course_id = c.id
+    WHERE ult.user_id = ? 
+    GROUP BY ult.course_id
+    ORDER BY total_mins DESC
+");
+$stmt_breakdown->execute([$user_id]);
+$course_breakdowns = $stmt_breakdown->fetchAll();
+
+$breakdown_labels = [];
+$breakdown_data = [];
+$breakdown_ids = [];
+foreach ($course_breakdowns as $b) {
+    $breakdown_labels[] = $b['title'] ? $b['title'] : 'General / Dashboard';
+    $breakdown_data[] = round((float)$b['total_mins'], 2);
+    $breakdown_ids[] = (int)$b['course_id'];
 }
 ?>
 
@@ -195,6 +216,49 @@ for ($i = 6; $i >= 0; $i--) {
         </div>
     </div>
 
+    <!-- Breakdown Chart Section -->
+    <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02); margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 style="font-size: 1.2rem; color: var(--dash-text); margin: 0;">Detail Waktu Belajar Per Kelas</h3>
+            <div style="font-size: 0.9rem; font-weight: 600; color: var(--dash-primary); background: rgba(59, 130, 246, 0.1); padding: 0.4rem 0.8rem; border-radius: 20px;">
+                Total: <?php 
+                    $tm = (int)$total_minutes;
+                    if ($tm >= 60) {
+                        echo floor($tm / 60) . "j " . ($tm % 60) . "m";
+                    } else {
+                        echo $tm . " menit";
+                    }
+                ?>
+            </div>
+        </div>
+        <div style="position: relative; height: 350px; width: 100%; margin-bottom: 2rem;">
+            <canvas id="breakdownChart"></canvas>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <h4 style="font-size: 1.05rem; color: var(--dash-text); margin: 0;">Aksi Cepat / Rincian Kelas</h4>
+            <?php foreach ($course_breakdowns as $b): ?>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid var(--dash-border); border-radius: 12px; background: var(--dash-bg);">
+                    <div style="font-weight: 500; color: var(--dash-text);">
+                        <?php echo htmlspecialchars($b['title'] ?: 'General / Dashboard'); ?>
+                        <div style="font-size: 0.8rem; color: var(--dash-text-muted); margin-top: 0.25rem;">
+                            Waktu Dihabiskan: <?php $btm = (int)$b['total_mins']; echo floor($btm / 60) . 'j ' . ($btm % 60) . 'm'; ?>
+                        </div>
+                    </div>
+                    <?php if ($b['course_id'] > 0): ?>
+                        <a href="index.php?page=course_detail&id=<?php echo $b['course_id']; ?>" style="text-decoration: none; background: rgba(59, 130, 246, 0.1); color: var(--dash-primary); padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.85rem; transition: background 0.2s;" onmouseover="this.style.background='var(--dash-primary)'; this.style.color='white';" onmouseout="this.style.background='rgba(59, 130, 246, 0.1)'; this.style.color='var(--dash-primary)';">
+                            Buka Kelas
+                        </a>
+                    <?php else: ?>
+                        <a href="http://localhost/CodingGo/index.php?page=dashboard" style="text-decoration: none; background: rgba(148, 163, 184, 0.1); color: var(--dash-text-muted); padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.85rem; transition: background 0.2s;" onmouseover="this.style.background='var(--dash-border)'; this.style.color='var(--dash-text)';" onmouseout="this.style.background='rgba(148, 163, 184, 0.1)'; this.style.color='var(--dash-text-muted)';">
+                            Ke Dashboard
+                        </a>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
     <!-- History Sections -->
     <div style="display: grid; grid-template-columns: 1fr; gap: 2rem; margin-bottom: 2rem;">
 
@@ -278,7 +342,16 @@ for ($i = 6; $i >= 0; $i--) {
                         displayColors: false,
                         callbacks: {
                             label: function(context) {
-                                return context.parsed.y + ' Menit';
+                                let mins = context.parsed.y;
+                                let total_seconds = Math.round(mins * 60);
+                                let h = Math.floor(total_seconds / 3600);
+                                let m = Math.floor((total_seconds % 3600) / 60);
+                                let s = total_seconds % 60;
+                                let txt = '';
+                                if(h > 0) txt += h + ' Jam ';
+                                if(m > 0 || (h === 0 && s === 0)) txt += m + ' Menit ';
+                                if(s > 0 && h === 0) txt += s + ' Detik';
+                                return txt.trim();
                             }
                         }
                     }
@@ -293,11 +366,19 @@ for ($i = 6; $i >= 0; $i--) {
                         ticks: {
                             color: textColor,
                             font: { family: "'Inter', sans-serif", size: 12 },
-                            stepSize: 30
+                            stepSize: 30,
+                            callback: function(value) {
+                                let h = Math.floor(value / 60);
+                                let m = value % 60;
+                                let txt = '';
+                                if(h > 0) txt += h + 'j ';
+                                if(m > 0 || h === 0) txt += m + 'm';
+                                return txt;
+                            }
                         },
                         title: {
                             display: true,
-                            text: 'Menit',
+                            text: 'Durasi Belajar',
                             color: textColor,
                             font: { family: "'Inter', sans-serif", size: 12 }
                         }
@@ -317,6 +398,68 @@ for ($i = 6; $i >= 0; $i--) {
                     y: {
                         duration: 1500,
                         easing: 'easeOutQuart'
+                    }
+                }
+            }
+        });
+        
+        // Breakdown Chart
+        const bdCtx = document.getElementById('breakdownChart').getContext('2d');
+        new Chart(bdCtx, {
+            type: 'bar',
+            data: {
+                labels: <?php echo json_encode($breakdown_labels); ?>,
+                datasets: [{
+                    label: 'Total Menit',
+                    data: <?php echo json_encode($breakdown_data); ?>,
+                    backgroundColor: [
+                        'rgba(16, 185, 129, 0.6)', 
+                        'rgba(59, 130, 246, 0.6)', 
+                        'rgba(245, 158, 11, 0.6)', 
+                        'rgba(139, 92, 246, 0.6)', 
+                        'rgba(239, 68, 68, 0.6)'
+                    ],
+                    borderWidth: 0,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                indexAxis: 'y', // horizontal bar chart
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let mins = context.parsed.x;
+                                let total_seconds = Math.round(mins * 60);
+                                let h = Math.floor(total_seconds / 3600);
+                                let m = Math.floor((total_seconds % 3600) / 60);
+                                let s = total_seconds % 60;
+                                let txt = '';
+                                if(h > 0) txt += h + ' Jam ';
+                                if(m > 0 || (h === 0 && s === 0)) txt += m + ' Menit ';
+                                if(s > 0 && h === 0) txt += s + ' Detik';
+                                return txt.trim();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Durasi Belajar' },
+                        ticks: {
+                            callback: function(value) {
+                                let h = Math.floor(value / 60);
+                                let m = value % 60;
+                                let txt = '';
+                                if(h > 0) txt += h + 'j ';
+                                if(m > 0 || h === 0) txt += m + 'm';
+                                return txt;
+                            }
+                        }
                     }
                 }
             }
@@ -348,4 +491,5 @@ for ($i = 6; $i >= 0; $i--) {
             });
         }
     });
+
 </script>

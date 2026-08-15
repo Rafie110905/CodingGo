@@ -17,22 +17,30 @@ if ($has_access) {
         $allowed = getUserAllowedCategories($current_user);
         if ($current_user['role'] === 'admin') {
             // Admin sees all
-            $stmt = $pdo->query("
+            $stmt = $pdo->prepare("
                 SELECT c.*, 
                        (SELECT AVG(rating) FROM course_ratings cr WHERE cr.course_id = c.id) as avg_rating,
-                       (SELECT COUNT(*) FROM course_ratings cr2 WHERE cr2.course_id = c.id) as total_ratings
+                       (SELECT COUNT(*) FROM course_ratings cr2 WHERE cr2.course_id = c.id) as total_ratings,
+                       (SELECT COUNT(*) FROM materials m WHERE m.course_id = c.id) as total_materials,
+                       (SELECT COUNT(*) FROM user_progress up JOIN materials m2 ON up.material_id = m2.id WHERE m2.course_id = c.id AND up.user_id = ? AND up.status = 'completed') as completed_materials,
+                       (SELECT COUNT(*) FROM exams e WHERE e.course_id = c.id) as exam_count
                 FROM courses c ORDER BY created_at DESC
             ");
+            $stmt->execute([$_SESSION['user_id']]);
             $courses = $stmt->fetchAll();
         } else if (!empty($allowed)) {
             $placeholders = implode(',', array_fill(0, count($allowed), '?'));
             $stmt = $pdo->prepare("
                 SELECT c.*, 
                        (SELECT AVG(rating) FROM course_ratings cr WHERE cr.course_id = c.id) as avg_rating,
-                       (SELECT COUNT(*) FROM course_ratings cr2 WHERE cr2.course_id = c.id) as total_ratings
+                       (SELECT COUNT(*) FROM course_ratings cr2 WHERE cr2.course_id = c.id) as total_ratings,
+                       (SELECT COUNT(*) FROM materials m WHERE m.course_id = c.id) as total_materials,
+                       (SELECT COUNT(*) FROM user_progress up JOIN materials m2 ON up.material_id = m2.id WHERE m2.course_id = c.id AND up.user_id = ? AND up.status = 'completed') as completed_materials,
+                       (SELECT COUNT(*) FROM exams e WHERE e.course_id = c.id) as exam_count
                 FROM courses c WHERE c.category IN ($placeholders) ORDER BY created_at DESC
             ");
-            $stmt->execute($allowed);
+            $params = array_merge([$_SESSION['user_id']], $allowed);
+            $stmt->execute($params);
             $courses = $stmt->fetchAll();
         } else {
             $courses = [];
@@ -41,10 +49,13 @@ if ($has_access) {
         $stmt = $pdo->prepare("
             SELECT c.*, 
                    (SELECT AVG(rating) FROM course_ratings cr WHERE cr.course_id = c.id) as avg_rating,
-                   (SELECT COUNT(*) FROM course_ratings cr2 WHERE cr2.course_id = c.id) as total_ratings
+                   (SELECT COUNT(*) FROM course_ratings cr2 WHERE cr2.course_id = c.id) as total_ratings,
+                   (SELECT COUNT(*) FROM materials m WHERE m.course_id = c.id) as total_materials,
+                   (SELECT COUNT(*) FROM user_progress up JOIN materials m2 ON up.material_id = m2.id WHERE m2.course_id = c.id AND up.user_id = ? AND up.status = 'completed') as completed_materials,
+                   (SELECT COUNT(*) FROM exams e WHERE e.course_id = c.id) as exam_count
             FROM courses c WHERE c.category = ? ORDER BY created_at DESC
         ");
-        $stmt->execute([$category]);
+        $stmt->execute([$_SESSION['user_id'], $category]);
         $courses = $stmt->fetchAll();
     }
 } else {
@@ -112,10 +123,26 @@ if ($has_access) {
                         </div>
                         <div class="course-title" style="margin-bottom:0.5rem; font-size:1.1rem; line-height:1.4;"><?php echo htmlspecialchars($c['title']); ?></div>
                         <div class="course-desc" style="flex:1; margin-bottom:1rem;"><?php echo htmlspecialchars(substr($c['description'], 0, 100)) . '...'; ?></div>
-                        
-                        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--dash-border); padding-top:1rem; margin-top:auto;">
-                            <span style="font-size:0.85rem; color:var(--dash-text-muted); font-weight:600;">Lihat Detail &rarr;</span>
-                        </div>
+                        <?php
+                            $has_exam = $c['exam_count'] > 0;
+                            $total_items = $c['total_materials'] + ($has_exam ? 1 : 0);
+                            $pct = $total_items > 0 ? round(($c['completed_materials'] / $total_items) * 100) : 0;
+                        ?>
+                        <?php if ($c['completed_materials'] > 0): ?>
+                            <div style="width:100%; background: var(--dash-border); border-radius: 999px; height: 8px; overflow: hidden; margin-bottom:0.75rem;">
+                                <?php $theme_color = !empty($c['theme_color']) ? $c['theme_color'] : '#4361ee'; ?>
+                                <div style="height:100%; border-radius:999px; background: <?php echo $theme_color; ?>; width: <?php echo $pct; ?>%;"></div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--dash-border); padding-top:1rem; margin-top:auto;">
+                                <span style="font-size:0.75rem; color:var(--dash-text-muted); font-weight:600;"><?php echo $pct; ?>% progress</span>
+                                <?php $btn_text = ($has_exam && $c['completed_materials'] >= $c['total_materials']) ? 'Selesaikan Ujian &rarr;' : 'Lanjutkan Belajar &rarr;'; ?>
+                                <span style="font-size:0.85rem; color:var(--dash-primary); font-weight:600;"><?php echo $btn_text; ?></span>
+                            </div>
+                        <?php else: ?>
+                            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--dash-border); padding-top:1rem; margin-top:auto;">
+                                <span style="font-size:0.85rem; color:var(--dash-text-muted); font-weight:600;">Lihat Detail &rarr;</span>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </a>

@@ -550,9 +550,10 @@ INSERT INTO `user_badges` (`id`, `user_id`, `badge_id`, `earned_at`) VALUES
 CREATE TABLE `user_learning_time` (
   `id` int NOT NULL,
   `user_id` int NOT NULL,
+  `course_id` int DEFAULT '0',
   `log_date` date NOT NULL,
   `time_spent` int DEFAULT '0',
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -782,7 +783,7 @@ ALTER TABLE `user_badges`
 --
 ALTER TABLE `user_learning_time`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `user_id` (`user_id`,`log_date`);
+  ADD UNIQUE KEY `user_id` (`user_id`,`log_date`,`course_id`);
 
 --
 -- Indexes for table `user_notifications`

@@ -56,6 +56,19 @@
                 }
             });
         }
+
+        // Time Tracking Script (Stats)
+        setInterval(function() {
+            // Only ping if tab is active (visible)
+            if(document.visibilityState === 'visible') {
+                const cid = window.currentCourseId ? window.currentCourseId : 0;
+                fetch('api/track_time.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ course_id: cid })
+                }).catch(err => console.error('Time tracking error:', err));
+            }
+        }, 10000);
     </script>
 </body>
 </html>

@@ -42,10 +42,25 @@ if (isset($_SESSION['user_id'])) {
     $unread_notifications_count = $stmt_unread->fetchColumn();
 }
 ?>
+<?php
+$current_page = $_GET['page'] ?? 'dashboard';
+$search_placeholder = "Cari...";
+if (in_array($current_page, ['dashboard', 'course_list', 'sertifikat', 'course_detail'])) {
+    $search_placeholder = "Cari kelas, materi, atau topik...";
+} elseif (in_array($current_page, ['admin_users', 'admin_user_detail', 'admin_class_access'])) {
+    $search_placeholder = "Cari nama atau email pengguna...";
+} elseif (in_array($current_page, ['admin_courses', 'admin_modules', 'admin_exams', 'admin_questions'])) {
+    $search_placeholder = "Cari data kelas atau kurikulum...";
+} elseif ($current_page === 'community') {
+    $search_placeholder = "Cari judul diskusi atau pembuat...";
+} elseif ($current_page === 'leaderboard') {
+    $search_placeholder = "Cari nama di papan peringkat...";
+}
+?>
 <header class="dash-topbar">
     <div class="dash-search-box">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" style="color:var(--dash-text-muted);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-        <input type="text" placeholder="Cari materi, kelas, atau topik...">
+        <input type="text" id="global-search" placeholder="<?php echo $search_placeholder; ?>">
     </div>
     
     <div class="dash-topbar-right">
@@ -151,7 +166,6 @@ if (isset($_SESSION['user_id'])) {
                 };
             }
             
-            // Toggle Logic for Notifications
             function toggleNotifDropdown(e) {
                 e.stopPropagation();
                 // close profile if open
@@ -178,6 +192,95 @@ if (isset($_SESSION['user_id'])) {
                     dropdown.style.display = 'none';
                     dropdown.classList.remove('show');
                 }
+            }
+
+            // Global Search Logic
+            const searchInput = document.getElementById('global-search');
+            if (searchInput) {
+                searchInput.addEventListener('input', function(e) {
+                    const term = e.target.value.toLowerCase();
+                    
+                    const items = document.querySelectorAll(`
+                        table tbody tr:not(.empty-search-msg), 
+                        .courses-grid > a:not(.empty-search-msg), 
+                        div[style*="grid-template-columns: repeat(auto-fill"] > div:not(.empty-search-msg), 
+                        div[style*="grid-template-columns: repeat(auto-fill"] > a:not(.empty-search-msg), 
+                        .community-post, 
+                        .champion-card, 
+                        .achievement-card, 
+                        .module-card
+                    `);
+
+                    items.forEach(item => {
+                        // Skip table headers or empty state rows
+                        if (item.querySelector('th') || item.classList.contains('empty-row') || item.textContent.trim() === 'Belum ada data') return;
+                        
+                        const text = item.textContent.toLowerCase();
+                        if (text.includes(term)) {
+                            item.style.display = '';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                    
+                    // Handle empty states for grids and lists
+                    const gridsToCheck = document.querySelectorAll('div[style*="grid-template-columns: repeat(auto-fill"], .courses-grid, .community-list');
+                    gridsToCheck.forEach(grid => {
+                        const children = grid.querySelectorAll(':scope > div:not(.empty-search-msg), :scope > a:not(.empty-search-msg)');
+                        if (children.length > 0) {
+                            let hasVisible = false;
+                            children.forEach(child => {
+                                if (child.style.display !== 'none') hasVisible = true;
+                            });
+                            
+                            let emptyMsg = grid.querySelector('.empty-search-msg');
+                            if (!hasVisible && term !== '') {
+                                if (!emptyMsg) {
+                                    emptyMsg = document.createElement('div');
+                                    emptyMsg.className = 'empty-search-msg';
+                                    emptyMsg.style.gridColumn = '1 / -1';
+                                    emptyMsg.style.padding = '2rem';
+                                    emptyMsg.style.textAlign = 'center';
+                                    emptyMsg.style.color = 'var(--dash-text-muted)';
+                                    emptyMsg.style.background = 'var(--dash-sidebar)';
+                                    emptyMsg.style.border = '1px dashed var(--dash-border)';
+                                    emptyMsg.style.borderRadius = '16px';
+                                    emptyMsg.innerHTML = 'Tidak ada hasil yang cocok dengan pencarian.';
+                                    grid.appendChild(emptyMsg);
+                                }
+                                emptyMsg.style.display = 'block';
+                            } else {
+                                if (emptyMsg) emptyMsg.style.display = 'none';
+                            }
+                        }
+                    });
+                    
+                    // Handle empty states for tables
+                    const tablesToCheck = document.querySelectorAll('table tbody');
+                    tablesToCheck.forEach(tbody => {
+                        const rows = tbody.querySelectorAll('tr:not(.empty-search-msg):not(.empty-row)');
+                        if (rows.length > 0) {
+                            let hasVisible = false;
+                            rows.forEach(row => {
+                                if (row.style.display !== 'none') hasVisible = true;
+                            });
+                            
+                            let emptyMsg = tbody.querySelector('.empty-search-msg');
+                            if (!hasVisible && term !== '') {
+                                if (!emptyMsg) {
+                                    emptyMsg = document.createElement('tr');
+                                    emptyMsg.className = 'empty-search-msg';
+                                    const cols = rows[0].children.length;
+                                    emptyMsg.innerHTML = `<td colspan="${cols}" style="text-align:center; padding:2rem; color:var(--dash-text-muted);">Tidak ada hasil yang cocok dengan pencarian.</td>`;
+                                    tbody.appendChild(emptyMsg);
+                                }
+                                emptyMsg.style.display = 'table-row';
+                            } else {
+                                if (emptyMsg) emptyMsg.style.display = 'none';
+                            }
+                        }
+                    });
+                });
             }
         </script>
     </div>
