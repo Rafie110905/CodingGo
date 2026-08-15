@@ -35,7 +35,7 @@ $stmt_mc->execute([$_SESSION['user_id']]);
 $completed_materials = $stmt_mc->fetch()['total'] ?? 0;
 
 // Hitung Progress Mingguan (7 Hari Terakhir)
-$stmt_week = $pdo->prepare("SELECT COALESCE(SUM(time_spent), 0) FROM user_learning_time WHERE user_id = ? AND log_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
+$stmt_week = $pdo->prepare("SELECT COALESCE(SUM(time_spent)/60, 0) FROM user_learning_time WHERE user_id = ? AND log_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
 $stmt_week->execute([$_SESSION['user_id']]);
 $weekly_minutes = (int)$stmt_week->fetchColumn();
 $weekly_target = $user_db['weekly_target'] ?? 600; // Target dinamis dari database (default 600 menit)
@@ -83,18 +83,18 @@ if (!empty($allowed_categories)) {
                (SELECT COUNT(*) FROM user_progress up2
                     JOIN materials m3 ON up2.material_id = m3.id
                     WHERE m3.course_id = c.id AND up2.user_id = ? AND up2.status = 'completed') AS completed_materials,
+               (SELECT COUNT(*) FROM exams WHERE course_id = c.id) AS exam_count,
                MAX(up.id) AS max_id,
                MAX(up.completed_at) AS max_completed_at
         FROM courses c
         JOIN materials m ON m.course_id = c.id
         JOIN user_progress up ON up.material_id = m.id AND up.user_id = ?
         WHERE c.category IN ($placeholders)
+          AND c.id NOT IN (SELECT course_id FROM certificates WHERE user_id = ?)
         GROUP BY c.id, c.title, c.category, c.description, c.thumbnail, c.theme_color
-        HAVING completed_materials < total_materials OR total_materials = 0
         ORDER BY max_completed_at DESC, max_id DESC
-        LIMIT 2
     ");
-    $params = array_merge([$_SESSION['user_id'], $_SESSION['user_id']], $allowed_categories);
+    $params = array_merge([$_SESSION['user_id'], $_SESSION['user_id']], $allowed_categories, [$_SESSION['user_id']]);
     $stmt_cont->execute($params);
     $continue_courses = $stmt_cont->fetchAll();
 }
@@ -193,9 +193,9 @@ if (!empty($shown_course_ids)) {
     </div> <!-- End stats-grid -->
 
     <!-- Lanjutkan Belajar -->
-    <div class="section-header">
-                <h2>Lanjutkan Belajar</h2>
-                <a href="index.php?page=course_list">Lihat Semua</a>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <h2 style="font-size: 1.2rem; color: var(--dash-text); margin: 0; text-align: left;">Lanjutkan Belajar</h2>
+                <a href="index.php?page=course_list" style="font-size: 0.85rem; color: var(--dash-primary); text-decoration: none; font-weight: 500;">Lihat Semua</a>
             </div>
             <?php if (empty($continue_courses)): ?>
             <div style="background: var(--dash-sidebar); border: 1px dashed var(--dash-border); padding: 2rem; text-align: center; border-radius: 16px; margin-bottom: 1.5rem;">
@@ -203,39 +203,43 @@ if (!empty($shown_course_ids)) {
                 <a href="index.php?page=course_list" style="display:inline-block; background:var(--dash-primary); color:white; padding:0.6rem 1.25rem; border-radius:8px; font-weight:600; text-decoration:none; font-size:0.85rem;">Jelajahi Kelas &rarr;</a>
             </div>
             <?php else: ?>
-            <div class="courses-grid" style="grid-template-columns: repeat(2, 1fr);">
-                <?php foreach ($continue_courses as $cc):
-                    $percent = $cc['total_materials'] > 0 ? min(100, round(($cc['completed_materials'] / $cc['total_materials']) * 100)) : 0;
-                    $bg = courseCardBg($cc, $course_gradients);
-                    $cc_rating = $rating_map[$cc['id']] ?? null;
+            <div class="no-filter" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+                <?php foreach ($continue_courses as $c):
+                    $has_exam = $c['exam_count'] > 0;
+                    $total_items = $c['total_materials'] + ($has_exam ? 1 : 0);
+                    $pct = $total_items > 0 ? round(($c['completed_materials'] / $total_items) * 100) : 0;
+                    $theme = $c['theme_color'] ?? '#4361ee';
+                    if (!empty($c['thumbnail'])) {
+                        $bg_style = "background: url('" . htmlspecialchars($c['thumbnail']) . "') center/cover;";
+                    } else {
+                        $bg_style = "background: var(--dash-bg);";
+                    }
                 ?>
-                <a href="index.php?page=course_detail&id=<?php echo $cc['id']; ?>" style="text-decoration:none; color:inherit;">
-                <div class="course-card">
-                    <div class="course-img" style="background: <?php echo $bg; ?>; display:flex; align-items:center; justify-content:center;">
-                        <?php if (empty($cc['thumbnail'])) echo renderCourseBadge($cc['title'], 64); ?>
+                <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; overflow: hidden;">
+                    <div style="<?php echo $bg_style; ?> position: relative; min-height: 130px; display: flex; flex-direction: column; justify-content: flex-end;">
                     </div>
-                    <div class="course-body">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                            <span class="course-tag" style="margin-bottom:0;"><?php echo htmlspecialchars($cc['category']); ?></span>
-                            <?php if ($cc_rating): ?>
-                                <span style="font-size:0.75rem; color:#eab308; font-weight:600;">⭐ <?php echo $cc_rating['avg']; ?> (<?php echo $cc_rating['count']; ?>)</span>
-                            <?php endif; ?>
+                    <div style="padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                        <div style="font-weight:700; font-size:1.05rem; color: var(--dash-text);"><?php echo htmlspecialchars($c['title']); ?></div>
+                        <span style="display:inline-block; width:fit-content; font-size:0.7rem; font-weight:700; padding:0.28rem 0.65rem; border-radius:999px; background:rgba(67,97,238,0.1); color: var(--dash-primary); text-transform:uppercase;"><?php echo htmlspecialchars($c['category']); ?></span>
+                        <div style="width:100%; background: var(--dash-border); border-radius: 999px; height: 8px; overflow: hidden;">
+                            <div style="height:100%; border-radius:999px; background: <?php echo $theme; ?>; width: <?php echo $pct; ?>%;"></div>
                         </div>
-                        <div class="course-title"><?php echo htmlspecialchars($cc['title']); ?></div>
-                        <div class="course-desc"><?php echo htmlspecialchars(mb_strimwidth($cc['description'], 0, 90, '...')); ?></div>
-                        <div class="progress-wrap"><div class="progress-bar" style="width: <?php echo $percent; ?>%;"></div></div>
-                        <div class="progress-text"><?php echo $percent; ?>%</div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--dash-text-muted);">
+                            <span><?php echo $pct; ?>% progress</span>
+                            <span><?php echo $c['completed_materials']; ?>/<?php echo $c['total_materials']; ?> bab</span>
+                        </div>
+                        <?php $btn_text = ($has_exam && $c['completed_materials'] >= $c['total_materials']) ? 'Selesaikan Ujian &rarr;' : 'Lanjutkan Belajar &rarr;'; ?>
+                        <a href="index.php?page=course_detail&id=<?php echo $c['id']; ?>" style="font-size:0.85rem; font-weight:600; color: var(--dash-primary); text-decoration:none;"><?php echo $btn_text; ?></a>
                     </div>
                 </div>
-                </a>
                 <?php endforeach; ?>
             </div>
             <?php endif; ?>
 
             <!-- Rekomendasi Untukmu -->
-            <div class="section-header">
-                <h2>Rekomendasi Untukmu</h2>
-                <a href="index.php?page=course_list">Lihat Semua</a>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; margin-top: 2rem;">
+                <h2 style="font-size: 1.2rem; color: var(--dash-text); margin: 0; text-align: left;">Rekomendasi Untukmu</h2>
+                <a href="index.php?page=course_list" style="font-size: 0.85rem; color: var(--dash-primary); text-decoration: none; font-weight: 500;">Lihat Semua</a>
             </div>
             <?php if (empty($recommended_courses)): ?>
             <div style="background: var(--dash-sidebar); border: 1px dashed var(--dash-border); padding: 2rem; text-align: center; border-radius: 16px;">

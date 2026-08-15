@@ -25,27 +25,7 @@ if (!$usr) {
     exit();
 }
 
-// Handle RBAC Update
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_rbac') {
-    if (isset($_POST['use_auto']) && $_POST['use_auto'] === '1') {
-        $new_allowed = null;
-    } else {
-        $allowed = $_POST['allowed_cats'] ?? [];
-        $new_allowed = empty($allowed) ? null : implode(',', $allowed);
-    }
-    
-    $stmt_upd = $pdo->prepare("UPDATE users SET allowed_categories = ? WHERE id = ?");
-    $stmt_upd->execute([$new_allowed, $detail_user_id]);
-    
-    // Refresh data
-    $stmt_u->execute([$detail_user_id]);
-    $usr = $stmt_u->fetch();
-}
-
 $user_age = calculateAge($usr['birth_date'] ?? '');
-$current_allowed_db = $usr['allowed_categories'];
-$is_auto = empty($current_allowed_db);
-$current_allowed_arr = $is_auto ? [] : array_map('trim', explode(',', $current_allowed_db));
 
 // Hitung Kelas Aktif
 $stmt_ac = $pdo->prepare("SELECT COUNT(DISTINCT m.course_id) as total FROM user_progress up JOIN materials m ON up.material_id = m.id WHERE up.user_id = ?");
@@ -93,37 +73,7 @@ $exam_history = $stmt_er->fetchAll();
         </div>
     </div>
     
-    <!-- RBAC Section -->
-    <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
-        <h3 style="margin-bottom: 1rem; color: var(--dash-text);">Hak Akses Kategori Kelas (RBAC)</h3>
-        <p style="color: var(--dash-text-muted); font-size:0.95rem; margin-bottom: 1rem;">
-            Secara bawaan, hak akses kelas diatur otomatis berdasarkan umur (SD: <13, SMP: 13-15, SMA: 16-18, Umum: >18). Admin dapat mengubah hak akses pengguna secara manual di bawah ini.
-        </p>
-        
-        <form method="POST">
-            <input type="hidden" name="action" value="update_rbac">
-            <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; font-weight: 600; color: var(--dash-text);">
-                <input type="checkbox" name="use_auto" value="1" <?php echo $is_auto ? 'checked' : ''; ?> onchange="document.getElementById('manual-cats').style.display = this.checked ? 'none' : 'block';">
-                Gunakan Akses Otomatis (Berdasarkan Umur)
-            </label>
-            
-            <div id="manual-cats" style="display: <?php echo $is_auto ? 'none' : 'block'; ?>; margin-bottom: 1.5rem; background: rgba(0,0,0,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--dash-border);">
-                <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
-                    <?php 
-                    $cats = ['SD', 'SMP', 'SMA', 'Umum'];
-                    foreach($cats as $c): 
-                        $checked = in_array($c, $current_allowed_arr) ? 'checked' : '';
-                    ?>
-                    <label style="display: flex; align-items: center; gap: 0.25rem; color: var(--dash-text);">
-                        <input type="checkbox" name="allowed_cats[]" value="<?php echo $c; ?>" <?php echo $checked; ?>> <?php echo $c; ?>
-                    </label>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-            
-            <button type="submit" style="background: var(--dash-primary); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer;">Simpan Hak Akses</button>
-        </form>
-    </div>
+
 
     <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 3rem;">
         <div class="stat-card">

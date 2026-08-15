@@ -24,6 +24,9 @@ if (!$material) {
 
 $user_id = $_SESSION['user_id'];
 $course_id = $material['course_id'];
+?>
+<script>window.currentCourseId = <?php echo (int)$course_id; ?>;</script>
+<?php
 
 // Cek progress user untuk materi ini
 $stmt_prog = $pdo->prepare("SELECT * FROM user_progress WHERE user_id = ? AND material_id = ?");
@@ -118,6 +121,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+// Fetch current rating for this course
+$stmt_my_rating = $pdo->prepare("SELECT * FROM course_ratings WHERE course_id = ? AND user_id = ?");
+$stmt_my_rating->execute([$course_id, $user_id]);
+$my_rating = $stmt_my_rating->fetch();
 
 // Ambil semua materi untuk sidebar
 $stmt_all = $pdo->prepare("SELECT id, title, unlock_keyword FROM materials WHERE course_id = ? ORDER BY order_index ASC");
@@ -268,61 +276,7 @@ $all_materials = $stmt_all->fetchAll();
                     </form>
                 </div>
 
-                <!-- Form Rating & Ulasan (Course Level) -->
-                <div style="margin-top: 3rem; background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 16px; padding: 1.5rem;">
-                    <h3 style="margin-top: 0; margin-bottom: 1rem; color: var(--dash-text); font-size: 1.1rem; display:flex; align-items:center; gap:8px;">
-                        <svg fill="currentColor" viewBox="0 0 20 20" width="24" style="color:#eab308;"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.958a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.368 2.447a1 1 0 00-.363 1.118l1.287 3.957c.3.922-.755 1.688-1.539 1.118l-3.367-2.446a1 1 0 00-1.176 0l-3.367 2.446c-.784.57-1.838-.196-1.539-1.118l1.287-3.957a1 1 0 00-.363-1.118L2.062 9.385c-.783-.57-.38-1.81.588-1.81h4.163a1 1 0 00.95-.69l1.286-3.958z" /></svg>
-                        <?php echo $my_rating ? 'Ubah Rating Kelas Ini' : 'Beri Rating Kelas Ini'; ?>
-                    </h3>
-                    
-                    <?php if ($rating_success): ?>
-                        <div style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem;">Terima kasih! Rating kamu sudah tersimpan dan muncul di Dashboard.</div>
-                    <?php elseif ($rating_deleted): ?>
-                        <div style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem;">Rating berhasil dihapus.</div>
-                    <?php elseif ($rating_error): ?>
-                        <div style="background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem;"><?php echo htmlspecialchars($rating_error); ?></div>
-                    <?php endif; ?>
 
-                    <form method="POST" action="">
-                        <input type="hidden" name="action" value="rate">
-                        <div id="starPicker" style="display:flex; gap:6px; margin-bottom: 1rem; font-size: 1.75rem; cursor:pointer;">
-                            <?php $current_star = $my_rating['rating'] ?? 0; ?>
-                            <?php for ($i = 1; $i <= 5; $i++): ?>
-                                <span class="star-choice" data-value="<?php echo $i; ?>" style="color: <?php echo $i <= $current_star ? '#eab308' : 'var(--border-color)'; ?>;">&#9733;</span>
-                            <?php endfor; ?>
-                        </div>
-                        <input type="hidden" name="rating" id="ratingInput" value="<?php echo $current_star; ?>">
-                        <textarea name="review" rows="2" placeholder="Tulis ulasan singkat (opsional)..." style="width:100%; padding:0.75rem; border-radius:8px; border:1px solid var(--border-color); background: var(--dash-bg); color: var(--dash-text); font-family:inherit; resize:vertical; margin-bottom:1rem;"><?php echo htmlspecialchars($my_rating['review'] ?? ''); ?></textarea>
-                        <div style="display:flex; gap:0.5rem; flex-direction:column;">
-                            <button type="submit" style="background: #3b82f6; color:white; border:none; padding:0.75rem 1.5rem; border-radius:8px; font-weight:600; cursor:pointer;">
-                                <?php echo $my_rating ? 'Perbarui Rating' : 'Kirim Rating'; ?>
-                            </button>
-                        </div>
-                    </form>
-                    <?php if ($my_rating): ?>
-                    <form method="POST" action="" style="margin-top: 0.5rem;">
-                        <input type="hidden" name="action" value="delete_rate">
-                        <button type="submit" onclick="return confirm('Yakin ingin menghapus rating?');" style="width:100%; background: transparent; color: #ef4444; border: 1px solid #ef4444; padding:0.75rem 1.5rem; border-radius:8px; font-weight:600; cursor:pointer;">
-                            Hapus Rating
-                        </button>
-                    </form>
-                    <?php endif; ?>
-                    <script>
-                        (function() {
-                            var stars = document.querySelectorAll('#starPicker .star-choice');
-                            var input = document.getElementById('ratingInput');
-                            stars.forEach(function(star) {
-                                star.addEventListener('click', function() {
-                                    var val = parseInt(star.getAttribute('data-value'), 10);
-                                    input.value = val;
-                                    stars.forEach(function(s) {
-                                        s.style.color = parseInt(s.getAttribute('data-value'), 10) <= val ? '#eab308' : 'var(--border-color)';
-                                    });
-                                });
-                            });
-                        })();
-                    </script>
-                </div>
             <?php endif; ?>
         </div>
     </div>

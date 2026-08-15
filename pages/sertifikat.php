@@ -4,7 +4,7 @@ require_once 'config/db.php';
 $user_id = $_SESSION['user_id'];
 
 // Sertifikat yang sudah diperoleh
-$stmt = $pdo->prepare("SELECT cert.*, c.title as course_title, c.category, c.theme_color
+$stmt = $pdo->prepare("SELECT cert.*, c.title as course_title, c.category, c.theme_color, c.thumbnail
                        FROM certificates cert
                        JOIN courses c ON cert.course_id = c.id
                        WHERE cert.user_id = ?
@@ -14,10 +14,10 @@ $certificates = $stmt->fetchAll();
 
 $owned_course_ids = array_column($certificates, 'course_id');
 
-// Ambil kelas yang sedang diikuti (punya progress) tapi belum bersertifikat
-$stmt_prog = $pdo->prepare("SELECT c.id, c.title, c.category, c.theme_color,
+$stmt_prog = $pdo->prepare("SELECT c.id, c.title, c.category, c.theme_color, c.thumbnail,
                             (SELECT COUNT(*) FROM materials WHERE course_id = c.id) as total_materi,
-                            (SELECT COUNT(*) FROM user_progress up JOIN materials m ON up.material_id = m.id WHERE up.user_id = ? AND m.course_id = c.id AND up.status = 'completed') as materi_selesai
+                            (SELECT COUNT(*) FROM user_progress up JOIN materials m ON up.material_id = m.id WHERE up.user_id = ? AND m.course_id = c.id AND up.status = 'completed') as materi_selesai,
+                            (SELECT COUNT(*) FROM exams WHERE course_id = c.id) as exam_count
                             FROM courses c
                             WHERE c.id IN (SELECT DISTINCT m.course_id FROM materials m JOIN user_progress up ON up.material_id = m.id WHERE up.user_id = ?)
                             ORDER BY c.title ASC");
@@ -50,11 +50,21 @@ $in_progress = array_filter($in_progress_all, function ($c) use ($owned_course_i
     <?php else: ?>
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
             <?php foreach ($certificates as $c): ?>
-            <?php $theme = $c['theme_color'] ?? '#4361ee'; ?>
+            <?php 
+                $theme = $c['theme_color'] ?? '#4361ee'; 
+                if (!empty($c['thumbnail'])) {
+                    $bg_style = "background: url('" . htmlspecialchars($c['thumbnail']) . "') center/cover;";
+                    $overlay = '<div style="position:absolute; inset:0; background:rgba(0,0,0,0.4);"></div>';
+                } else {
+                    $bg_style = "background: linear-gradient(135deg, {$theme} 0%, #1e293b 120%);";
+                    $overlay = '';
+                }
+            ?>
             <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; overflow: hidden;">
-                <div style="background: linear-gradient(135deg, <?php echo $theme; ?> 0%, #1e293b 120%); padding: 2rem 1.5rem; color: #fff; position: relative; min-height: 130px; display: flex; flex-direction: column; justify-content: space-between;">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="26"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg>
-                    <div style="font-weight:700; font-size:0.95rem;"><?php echo htmlspecialchars($c['course_title']); ?></div>
+                <div style="<?php echo $bg_style; ?> padding: 2rem 1.5rem; color: #fff; position: relative; min-height: 130px; display: flex; flex-direction: column; justify-content: space-between;">
+                    <?php echo $overlay; ?>
+                    <svg style="position:relative; z-index:1; color:#fff;" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="26"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg>
+                    <div style="position:relative; z-index:1; font-weight:700; font-size:0.95rem; text-shadow: 0 1px 3px rgba(0,0,0,0.8);"><?php echo htmlspecialchars($c['course_title']); ?></div>
                 </div>
                 <div style="padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.85rem;">
                     <span style="display:inline-block; width:fit-content; font-size:0.7rem; font-weight:700; padding:0.28rem 0.65rem; border-radius:999px; background:rgba(67,97,238,0.1); color:var(--dash-primary); text-transform:uppercase;"><?php echo htmlspecialchars($c['category']); ?></span>
@@ -78,13 +88,25 @@ $in_progress = array_filter($in_progress_all, function ($c) use ($owned_course_i
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
         <?php foreach ($in_progress as $c): ?>
         <?php
-            $pct = $c['total_materi'] > 0 ? round(($c['materi_selesai'] / $c['total_materi']) * 100) : 0;
+            $has_exam = $c['exam_count'] > 0;
+            $total_items = $c['total_materi'] + ($has_exam ? 1 : 0);
+            $pct = $total_items > 0 ? round(($c['materi_selesai'] / $total_items) * 100) : 0;
             $theme = $c['theme_color'] ?? '#4361ee';
+            if (!empty($c['thumbnail'])) {
+                $bg_style = "background: url('" . htmlspecialchars($c['thumbnail']) . "') center/cover;";
+                $overlay = '<div style="position:absolute; inset:0; background:rgba(0,0,0,0.4);"></div>';
+                $text_color = '#fff';
+            } else {
+                $bg_style = "background: var(--dash-bg);";
+                $overlay = '';
+                $text_color = 'var(--dash-text)';
+            }
         ?>
         <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; overflow: hidden;">
-            <div style="background: var(--dash-bg); padding: 2rem 1.5rem; color: var(--dash-text-muted); position: relative; min-height: 130px; display: flex; flex-direction: column; justify-content: space-between;">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                <div style="font-weight:700; font-size:0.95rem; color: var(--dash-text);"><?php echo htmlspecialchars($c['title']); ?></div>
+            <div style="<?php echo $bg_style; ?> padding: 2rem 1.5rem; position: relative; min-height: 130px; display: flex; flex-direction: column; justify-content: space-between;">
+                <?php echo $overlay; ?>
+                <svg style="position:relative; z-index:1; color: <?php echo $text_color; ?>;" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                <div style="position:relative; z-index:1; font-weight:700; font-size:0.95rem; color: <?php echo $text_color; ?>; <?php echo $overlay ? 'text-shadow: 0 1px 3px rgba(0,0,0,0.8);' : ''; ?>"><?php echo htmlspecialchars($c['title']); ?></div>
             </div>
             <div style="padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
                 <span style="display:inline-block; width:fit-content; font-size:0.7rem; font-weight:700; padding:0.28rem 0.65rem; border-radius:999px; background:rgba(67,97,238,0.1); color: var(--dash-primary); text-transform:uppercase;"><?php echo htmlspecialchars($c['category']); ?></span>
@@ -92,10 +114,11 @@ $in_progress = array_filter($in_progress_all, function ($c) use ($owned_course_i
                     <div style="height:100%; border-radius:999px; background: <?php echo $theme; ?>; width: <?php echo $pct; ?>%;"></div>
                 </div>
                 <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--dash-text-muted);">
-                    <span><?php echo $pct; ?>% materi selesai</span>
+                    <span><?php echo $pct; ?>% progress</span>
                     <span><?php echo $c['materi_selesai']; ?>/<?php echo $c['total_materi']; ?> bab</span>
                 </div>
-                <a href="index.php?page=course_detail&id=<?php echo $c['id']; ?>" style="font-size:0.85rem; font-weight:600; color: var(--dash-primary); text-decoration:none;">Lanjutkan Belajar &rarr;</a>
+                <?php $btn_text = ($has_exam && $c['materi_selesai'] >= $c['total_materi']) ? 'Selesaikan Ujian &rarr;' : 'Lanjutkan Belajar &rarr;'; ?>
+                <a href="index.php?page=course_detail&id=<?php echo $c['id']; ?>" style="font-size:0.85rem; font-weight:600; color: var(--dash-primary); text-decoration:none;"><?php echo $btn_text; ?></a>
             </div>
         </div>
         <?php endforeach; ?>

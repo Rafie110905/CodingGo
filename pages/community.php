@@ -41,10 +41,15 @@ $stmt = $pdo->prepare("SELECT fp.*, u.name, u.picture, u.profile_title, u.profil
 $stmt->execute([$my_uid]);
 $posts = $stmt->fetchAll();
 
-// Fetch Top 10 Leaderboard
-$stmt_top = $pdo->query("SELECT id, name, picture, xp_points, profile_color 
-                         FROM users WHERE role = 'user' 
-                         ORDER BY xp_points DESC, total_badges DESC, name ASC LIMIT 10");
+// Fetch Top 10 Leaderboard (Dynamic/Real-time)
+$stmt_top = $pdo->query("SELECT u.id, u.name, u.picture, u.profile_title, u.profile_color,
+                         (
+                            (SELECT COALESCE(SUM(m.xp_reward), 0) FROM user_progress up JOIN materials m ON up.material_id = m.id WHERE up.user_id = u.id AND up.status = 'completed') +
+                            (SELECT COALESCE(SUM(cc.xp_reward), 0) FROM championship_completed_challenges ccc JOIN championship_challenges cc ON ccc.challenge_id = cc.id WHERE ccc.user_id = u.id)
+                         ) as xp_points,
+                         (SELECT COUNT(*) FROM user_badges ub WHERE ub.user_id = u.id) as total_badges
+                         FROM users u 
+                         ORDER BY xp_points DESC, total_badges DESC, u.name ASC LIMIT 10");
 $top10 = $stmt_top->fetchAll();
 ?>
 
@@ -59,7 +64,7 @@ $top10 = $stmt_top->fetchAll();
         </div>
 
         <!-- Post list -->
-        <div style="display: flex; flex-direction: column; gap: 1rem;">
+        <div class="community-list" style="display: flex; flex-direction: column; gap: 1rem;">
             <?php if (count($posts) === 0): ?>
                 <div style="background: var(--dash-sidebar); border: 1px dashed var(--dash-border); padding: 3rem; text-align: center; border-radius: 16px;">
                     <h3 style="color: var(--dash-text-muted);">Belum ada diskusi. Jadilah yang pertama!</h3>
@@ -74,8 +79,8 @@ $top10 = $stmt_top->fetchAll();
                 $user_badges = $stmt_b->fetchAll();
                 $border_color = !empty($p['profile_color']) ? htmlspecialchars($p['profile_color']) : 'transparent';
                 ?>
-                <div style="position:relative;">
-                    <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; padding: 1.5rem; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 25px -5px rgba(0,0,0,0.05)'" onmouseout="this.style.transform='none'; this.style.boxShadow='none'">
+                <div class="community-post" style="position:relative;">
+                    <div style="background: var(--dash-sidebar); border: 1px solid <?php echo $p['is_official'] ? 'var(--dash-primary)' : 'var(--dash-border)'; ?>; border-radius: 16px; padding: 1.5rem; transition: transform 0.2s, box-shadow 0.2s; <?php echo $p['is_official'] ? 'box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);' : ''; ?>" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 25px -5px rgba(0,0,0,0.05)'" onmouseout="this.style.transform='none'; this.style.boxShadow='<?php echo $p['is_official'] ? '0 0 0 2px rgba(59, 130, 246, 0.15)' : 'none'; ?>'">
 
                         
                         <div style="display:flex; gap:1rem; align-items:flex-start; margin-bottom:1rem;">
