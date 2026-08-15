@@ -28,6 +28,11 @@ $course_id = $material['course_id'];
 <script>window.currentCourseId = <?php echo (int)$course_id; ?>;</script>
 <?php
 
+$my_rating = null;
+$stmt_mine = $pdo->prepare("SELECT rating, review FROM course_ratings WHERE course_id = ? AND user_id = ?");
+$stmt_mine->execute([$course_id, $user_id]);
+$my_rating = $stmt_mine->fetch();
+
 // Cek progress user untuk materi ini
 $stmt_prog = $pdo->prepare("SELECT * FROM user_progress WHERE user_id = ? AND material_id = ?");
 $stmt_prog->execute([$user_id, $material_id]);

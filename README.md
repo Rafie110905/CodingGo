@@ -113,8 +113,8 @@ Untuk mengaktifkan fitur **Google Sign-In**, daftarkan **Client ID** di [Google 
 
 | Role | Email | Password |
 |---|---|---|
-| Admin | demo.admin@codinggo.id | Demo1234! |
-| User (kategori Umum) | demo.user@codinggo.id | Demo1234! |
+| Admin | adminpanitia@gmail.com | 12345678910 |
+| User | userpanitia@gmail.com | abcdefgh |
 
 > Kredensial di atas hanya untuk keperluan demo/penilaian juri. Sesuaikan dengan akun yang benar-benar dibuat pada database kalian sebelum submit.
 
