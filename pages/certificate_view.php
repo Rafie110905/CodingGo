@@ -47,12 +47,12 @@ $cert = $stmt->fetch();
 
                 <div class="signature-row">
                     <div class="sig-box">
-                        <span>Lead Backend</span>
+                        <span>Backend Developer</span>
                         <strong>Rafi</strong>
                     </div>
                     <div class="sig-box">
-                        <span>Frontend Developer</span>
-                        <strong>Deddy Nurrohim</strong>
+                        <span>Fullstack Developer</span>
+                        <strong>Dedy Nurohim</strong>
                     </div>
                     <div class="sig-box">
                         <span>UI/UX Designer</span>

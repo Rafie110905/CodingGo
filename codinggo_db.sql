@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Aug 11, 2026 at 02:59 AM
+-- Generation Time: Aug 16, 2026 at 07:46 PM
 -- Server version: 8.0.30
 -- PHP Version: 8.3.11
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `codinggo_db`
+-- Database: ``
 --
 
 -- --------------------------------------------------------
@@ -34,7 +34,7 @@ CREATE TABLE `badges` (
   `icon_url` varchar(255) DEFAULT NULL,
   `requirement_type` enum('xp','course','exam','forum_upvotes') NOT NULL,
   `requirement_value` int NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `badges`
@@ -42,7 +42,27 @@ CREATE TABLE `badges` (
 
 INSERT INTO `badges` (`id`, `name`, `description`, `icon_url`, `requirement_type`, `requirement_value`) VALUES
 (1, 'Master of Microsoft Office Dasar', 'Lulus ujian Quiz: Microsoft Office Dasar', NULL, 'exam', 6),
-(2, 'Master of Mengenal Perangkat & Internet', 'Lulus ujian Quiz: Mengenal Perangkat & Internet', NULL, 'exam', 3);
+(2, 'Master of Mengenal Perangkat & Internet', 'Lulus ujian Quiz: Mengenal Perangkat & Internet', NULL, 'exam', 3),
+(3, 'Lulusan: Mengenal Perangkat & Internet', 'Berhasil menyelesaikan course Mengenal Perangkat & Internet', NULL, 'course', 4),
+(4, 'Lulusan: Keamanan Digital Dasar', 'Berhasil menyelesaikan course Keamanan Digital Dasar', NULL, 'course', 5),
+(5, 'Lulusan: Logika Dasar (Computational Thinking)', 'Berhasil menyelesaikan course Logika Dasar (Computational Thinking)', NULL, 'course', 6),
+(6, 'Lulusan: Microsoft Office Dasar', 'Berhasil menyelesaikan course Microsoft Office Dasar', NULL, 'course', 7),
+(7, 'Lulusan: Kreativitas Digital', 'Berhasil menyelesaikan course Kreativitas Digital', NULL, 'course', 8),
+(8, 'Lulusan: Keamanan Siber Menengah', 'Berhasil menyelesaikan course Keamanan Siber Menengah', NULL, 'course', 9),
+(9, 'Lulusan: Dasar Coding (Block-based ke Text-based)', 'Berhasil menyelesaikan course Dasar Coding (Block-based ke Text-based)', NULL, 'course', 10),
+(10, 'Lulusan: Microsoft Office Menengah', 'Berhasil menyelesaikan course Microsoft Office Menengah', NULL, 'course', 11),
+(11, 'Lulusan: Literasi Data & Privasi', 'Berhasil menyelesaikan course Literasi Data & Privasi', NULL, 'course', 12),
+(12, 'Lulusan: Pengenalan Desain & Multimedia Dasar', 'Berhasil menyelesaikan course Pengenalan Desain & Multimedia Dasar', NULL, 'course', 13),
+(13, 'Lulusan: Keamanan Siber Lanjutan', 'Berhasil menyelesaikan course Keamanan Siber Lanjutan', NULL, 'course', 14),
+(14, 'Lulusan: Pemrograman Terapan', 'Berhasil menyelesaikan course Pemrograman Terapan', NULL, 'course', 15),
+(15, 'Lulusan: Microsoft Office Profesional', 'Berhasil menyelesaikan course Microsoft Office Profesional', NULL, 'course', 16),
+(16, 'Lulusan: Literasi AI & Etika Teknologi', 'Berhasil menyelesaikan course Literasi AI & Etika Teknologi', NULL, 'course', 17),
+(17, 'Lulusan: Kesiapan Karier Digital', 'Berhasil menyelesaikan course Kesiapan Karier Digital', NULL, 'course', 18),
+(18, 'Lulusan: Keamanan Siber untuk Profesional & Bisnis', 'Berhasil menyelesaikan course Keamanan Siber untuk Profesional & Bisnis', NULL, 'course', 19),
+(19, 'Lulusan: Otomatisasi Kerja dengan Python Dasar', 'Berhasil menyelesaikan course Otomatisasi Kerja dengan Python Dasar', NULL, 'course', 20),
+(20, 'Lulusan: Microsoft Office untuk Produktivitas Kerja', 'Berhasil menyelesaikan course Microsoft Office untuk Produktivitas Kerja', NULL, 'course', 21),
+(21, 'Lulusan: Literasi AI & Produktivitas Kerja', 'Berhasil menyelesaikan course Literasi AI & Produktivitas Kerja', NULL, 'course', 22),
+(22, 'Lulusan: Personal Branding & Karier Digital', 'Berhasil menyelesaikan course Personal Branding & Karier Digital', NULL, 'course', 23);
 
 -- --------------------------------------------------------
 
@@ -57,7 +77,7 @@ CREATE TABLE `broadcasts` (
   `type` enum('info','warning','success') DEFAULT 'info',
   `is_active` tinyint(1) DEFAULT '1',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -70,7 +90,7 @@ CREATE TABLE `broadcast_views` (
   `broadcast_id` int NOT NULL,
   `user_id` int NOT NULL,
   `viewed_at` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -84,7 +104,7 @@ CREATE TABLE `certificates` (
   `user_id` int NOT NULL,
   `course_id` int NOT NULL,
   `issued_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `certificates`
@@ -92,7 +112,8 @@ CREATE TABLE `certificates` (
 
 INSERT INTO `certificates` (`id`, `certificate_code`, `user_id`, `course_id`, `issued_at`) VALUES
 (1, 'CGO-9A87B1-73', 3, 7, '2026-08-10 05:27:11'),
-(2, 'CGO-30EE73-43', 3, 4, '2026-08-10 05:40:54');
+(2, 'CGO-30EE73-43', 3, 4, '2026-08-10 05:40:54'),
+(3, 'CGO-BC4A5B-41', 1, 4, '2026-08-13 07:33:30');
 
 -- --------------------------------------------------------
 
@@ -108,7 +129,14 @@ CREATE TABLE `championships` (
   `end_date` datetime DEFAULT NULL,
   `status` varchar(50) DEFAULT 'upcoming',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `championships`
+--
+
+INSERT INTO `championships` (`id`, `title`, `description`, `start_date`, `end_date`, `status`, `created_at`) VALUES
+(1, 'Challenge Mingguan CodingGo', 'Tantangan mingguan untuk melatih logika, literasi digital, dan kemampuan coding dasar.', '2026-08-15 13:11:33', '2026-08-29 13:11:33', 'active', '2026-08-15 13:11:33');
 
 -- --------------------------------------------------------
 
@@ -124,7 +152,33 @@ CREATE TABLE `championship_challenges` (
   `correct_answer` varchar(255) DEFAULT NULL,
   `xp_reward` int DEFAULT '0',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `championship_challenges`
+--
+
+INSERT INTO `championship_challenges` (`id`, `championship_id`, `title`, `description`, `correct_answer`, `xp_reward`, `created_at`) VALUES
+(1, 1, 'Judul 1: Logika Boolean', '### Soal Challenge\n\nJika kondisi A benar dan B salah, maka hasil A && B adalah?\n\nJawaban singkat: false\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', 'false', 50, '2026-08-15 13:11:33'),
+(2, 1, 'Judul 2: Penggunaan Variabel', '### Soal Challenge\n\nVariabel dalam program berfungsi untuk?\n\nJawaban singkat: menyimpan data\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', 'menyimpan data', 50, '2026-08-15 13:11:33'),
+(3, 1, 'Judul 3: Struktur Kondisi', '### Soal Challenge\n\nFungsi utama if adalah?\n\nJawaban singkat: membuat keputusan berdasarkan kondisi\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', 'membuat keputusan berdasarkan kondisi', 50, '2026-08-15 13:11:33'),
+(4, 1, 'Judul 4: Perulangan', '### Soal Challenge\n\nPerulangan digunakan agar kode?\n\nJawaban singkat: berjalan berulang sesuai pola\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', 'berjalan berulang sesuai pola', 50, '2026-08-15 13:11:33'),
+(5, 1, 'Judul 5: Internet Aman', '### Soal Challenge\n\nSebelum klik tautan mencurigakan, yang paling tepat adalah?\n\nJawaban singkat: mencek sumbernya dan menanyakan ke orang dewasa\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', 'mencek sumbernya dan menanyakan ke orang dewasa', 50, '2026-08-15 13:11:33'),
+(6, 1, 'Judul 6: Program Dasar', '### Soal Challenge\n\nBahasa pemrograman yang populer untuk web adalah?\n\nJawaban singkat: javascript\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', 'javascript', 50, '2026-08-15 13:11:33'),
+(7, 1, 'Judul 7: Data Pribadi', '### Soal Challenge\n\nData paling sensitif yang tidak boleh dibagikan ke orang asing adalah?\n\nJawaban singkat: nomor telepon dan alamat rumah\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', 'nomor telepon dan alamat rumah', 50, '2026-08-15 13:11:33'),
+(8, 1, 'Judul 8: Microsoft Excel', '### Soal Challenge\n\nFungsi utama rumus IF di Excel adalah?\n\nJawaban singkat: membuat keputusan berdasarkan syarat\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', 'membuat keputusan berdasarkan syarat', 50, '2026-08-15 13:11:33'),
+(9, 1, 'Judul 9: Desain', '### Soal Challenge\n\nLayout yang rapi membuat desain terasa?\n\nJawaban singkat: lebih mudah dibaca dan enak dilihat\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', 'lebih mudah dibaca dan enak dilihat', 50, '2026-08-15 13:11:33'),
+(10, 1, 'Judul 10: Keamanan Digital', '### Soal Challenge\n\n2FA adalah singkatan dari?\n\nJawaban singkat: two factor authentication\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', 'two factor authentication', 50, '2026-08-15 13:11:33'),
+(11, 1, 'Judul 11: HTML', '### Soal Challenge\n\nTag yang digunakan untuk judul utama adalah?\n\nJawaban singkat: h1\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', 'h1', 50, '2026-08-15 13:11:33'),
+(12, 1, 'Judul 12: Logika Matematika', '### Soal Challenge\n\nHasil dari 8 + 4 / 2 adalah?\n\nJawaban singkat: 10\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', '10', 50, '2026-08-15 13:11:33'),
+(13, 1, 'Judul 13: Digital Footprint', '### Soal Challenge\n\nJejak digital adalah?\n\nJawaban singkat: rekam aktivitas kita di internet\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', 'rekam aktivitas kita di internet', 50, '2026-08-15 13:11:33'),
+(14, 1, 'Judul 14: AI', '### Soal Challenge\n\nAI yang baik sebaiknya digunakan dengan?\n\nJawaban singkat: verifikasi dan etika\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', 'verifikasi dan etika', 50, '2026-08-15 13:11:33'),
+(15, 1, 'Judul 15: Presentasi', '### Soal Challenge\n\nSlide yang efektif biasanya?\n\nJawaban singkat: ringkas, jelas, dan visual\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', 'ringkas, jelas, dan visual', 50, '2026-08-15 13:11:33'),
+(16, 1, 'Judul 16: Internet & Data', '### Soal Challenge\n\nCookie pada website berfungsi untuk?\n\nJawaban singkat: mengingat preferensi pengguna\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', 'mengingat preferensi pengguna', 50, '2026-08-15 13:11:33'),
+(17, 1, 'Judul 17: Simulasi', '### Soal Challenge\n\nUrutan instruksi yang benar disebut?\n\nJawaban singkat: sequencing\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', 'sequencing', 50, '2026-08-15 13:11:33'),
+(18, 1, 'Judul 18: Cyber Safety', '### Soal Challenge\n\nJika menerima SMS menang hadiah tidak jelas, langkah paling aman adalah?\n\nJawaban singkat: mengabaikannya dan mengeceknya melalui kanal resmi\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', 'mengabaikannya dan mengeceknya melalui kanal resmi', 50, '2026-08-15 13:11:33'),
+(19, 1, 'Judul 19: Programming Mindset', '### Soal Challenge\n\nCara terbaik belajar coding adalah?\n\nJawaban singkat: latihan rutin dan membangun proyek kecil\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', 'latihan rutin dan membangun proyek kecil', 50, '2026-08-15 13:11:33'),
+(20, 1, 'Judul 20: Problem Solving', '### Soal Challenge\n\nSaat menemukan bug, langkah terbaik adalah?\n\nJawaban singkat: mencari penyebabnya dan mengujinya satu per satu\n\n> Tips: jawab singkat, jelas, dan tanpa spasi berlebih.', 'mencari penyebabnya dan mengujinya satu per satu', 50, '2026-08-15 13:11:33');
 
 -- --------------------------------------------------------
 
@@ -137,7 +191,7 @@ CREATE TABLE `championship_completed_challenges` (
   `challenge_id` int NOT NULL,
   `user_id` int NOT NULL,
   `completed_at` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -151,7 +205,7 @@ CREATE TABLE `championship_participants` (
   `user_id` int NOT NULL,
   `xp_earned` int DEFAULT '0',
   `joined_at` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -168,7 +222,7 @@ CREATE TABLE `courses` (
   `theme_color` varchar(10) DEFAULT '#4361ee',
   `created_by` int DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `courses`
@@ -189,7 +243,35 @@ INSERT INTO `courses` (`id`, `title`, `category`, `description`, `thumbnail`, `t
 (15, 'Pemrograman Terapan', 'SMA', 'Membuat proyek nyata (mini web/app sederhana) menggunakan HTML/CSS/JS atau Python.', 'https://course-net.com/wp-content/uploads/2022/11/1-1024x538-1.jpeg', '#8b5cf6', NULL, '2026-08-09 08:52:49'),
 (16, 'Microsoft Office Profesional', 'SMA', 'Analisis data dengan pivot table dan grafik di Excel, laporan akademik, dan presentasi formal.', 'https://diengcyber.com/wp-content/uploads/2022/04/jenis-microsoft-office-dan-fungsi.jpg', '#8b5cf6', NULL, '2026-08-09 08:52:49'),
 (17, 'Literasi AI & Etika Teknologi', 'SMA', 'Cara kerja AI/machine learning sederhana, bias algoritma, dan penggunaan AI secara bertanggung jawab.', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSunryFN-vloMBA07PzHirMEs8B7tQzH1MEzQDN046ek6xgbPBmotrx5Zc&s=10', '#8b5cf6', NULL, '2026-08-09 08:52:49'),
-(18, 'Kesiapan Karier Digital', 'SMA', 'Dasar CV digital, portofolio online, dan pengenalan dunia kerja IT.', 'https://uici.ac.id/wp-content/uploads/2024/01/IMG_2130.jpeg', '#8b5cf6', NULL, '2026-08-09 08:52:49');
+(18, 'Kesiapan Karier Digital', 'SMA', 'Dasar CV digital, portofolio online, dan pengenalan dunia kerja IT.', 'https://uici.ac.id/wp-content/uploads/2024/01/IMG_2130.jpeg', '#8b5cf6', NULL, '2026-08-09 08:52:49'),
+(19, 'Keamanan Siber untuk Profesional & Bisnis', 'Umum', 'Belajar cara menjaga akun digital, mengenali phishing, mengelola data sensitif, dan membangun keamanan siber di lingkungan kerja serta bisnis.', NULL, '#f59e0b', NULL, '2026-08-15 06:11:34'),
+(20, 'Otomatisasi Kerja dengan Python Dasar', 'Umum', 'Pelajari cara menggunakan Python dasar untuk otomatisasi tugas harian, pengolahan data ringan, dan peningkatan produktivitas kerja.', NULL, '#f59e0b', NULL, '2026-08-15 06:11:34'),
+(21, 'Microsoft Office untuk Produktivitas Kerja', 'Umum', 'Kuasai Word, Excel, dan PowerPoint untuk menulis dokumen, mengolah data, dan membuat presentasi yang efektif di pekerjaan sehari-hari.', NULL, '#f59e0b', NULL, '2026-08-15 06:11:34'),
+(22, 'Literasi AI & Produktivitas Kerja', 'Umum', 'Pahami cara kerja AI, manfaatnya untuk produktivitas, serta apa yang harus diperhatikan agar penggunaan AI tetap etis dan aman.', NULL, '#f59e0b', NULL, '2026-08-15 06:11:34'),
+(23, 'Personal Branding & Karier Digital', 'Umum', 'Bangun portofolio online, optimalkan LinkedIn, dan presentasikan diri secara digital agar lebih siap menghadapi dunia kerja modern.', NULL, '#f59e0b', NULL, '2026-08-15 06:11:34');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `course_ratings`
+--
+
+CREATE TABLE `course_ratings` (
+  `id` int NOT NULL,
+  `course_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `rating` tinyint NOT NULL,
+  `review` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `course_ratings`
+--
+
+INSERT INTO `course_ratings` (`id`, `course_id`, `user_id`, `rating`, `review`, `created_at`, `updated_at`) VALUES
+(2, 4, 1, 5, NULL, '2026-08-13 08:09:08', NULL);
 
 -- --------------------------------------------------------
 
@@ -203,7 +285,7 @@ CREATE TABLE `exams` (
   `title` varchar(150) NOT NULL,
   `type` enum('quiz','challenge') NOT NULL,
   `min_score_passing` int NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `exams`
@@ -224,7 +306,12 @@ INSERT INTO `exams` (`id`, `course_id`, `title`, `type`, `min_score_passing`) VA
 (14, 15, 'Quiz: Pemrograman Terapan', 'quiz', 70),
 (15, 16, 'Quiz: Microsoft Office Profesional', 'quiz', 70),
 (16, 17, 'Quiz: Literasi AI & Etika Teknologi', 'quiz', 70),
-(17, 18, 'Quiz: Kesiapan Karier Digital', 'quiz', 70);
+(17, 18, 'Quiz: Kesiapan Karier Digital', 'quiz', 70),
+(18, 19, 'Ujian Akhir: Keamanan Siber untuk Profesional & Bisnis', 'quiz', 50),
+(19, 20, 'Ujian Akhir: Otomatisasi Kerja dengan Python Dasar', 'quiz', 50),
+(20, 21, 'Ujian Akhir: Microsoft Office untuk Produktivitas Kerja', 'quiz', 50),
+(21, 22, 'Ujian Akhir: Literasi AI & Produktivitas Kerja', 'quiz', 50),
+(22, 23, 'Ujian Akhir: Personal Branding & Karier Digital', 'quiz', 50);
 
 -- --------------------------------------------------------
 
@@ -243,7 +330,7 @@ CREATE TABLE `exam_questions` (
   `option_d` varchar(255) DEFAULT NULL,
   `correct_answer` text NOT NULL,
   `points` int DEFAULT '10'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `exam_questions`
@@ -324,7 +411,32 @@ INSERT INTO `exam_questions` (`id`, `exam_id`, `question_type`, `question_text`,
 (73, 17, 'multiple_choice', 'Portofolio online berguna untuk?', 'Menyembunyikan karya', 'Menampilkan hasil karya/proyek terbaik ke calon perekrut', 'Menghapus riwayat kerja', 'Menggantikan ijazah sepenuhnya', 'b', 20),
 (74, 17, 'multiple_choice', 'Junior developer biasanya bertugas untuk?', 'Menulis dan membantu mengembangkan kode program', 'Hanya mengurus pemasaran', 'Mengelola gaji karyawan', 'Mendesain logo perusahaan saja', 'a', 20),
 (75, 17, 'multiple_choice', 'Data analyst berfokus pada?', 'Menganalisis data untuk mendapatkan insight/wawasan', 'Memperbaiki hardware komputer', 'Mendesain pakaian', 'Mengelola dapur kantor', 'a', 20),
-(76, 17, 'multiple_choice', 'Sebelum melamar kerja di bidang IT, sebaiknya kita mempersiapkan?', 'CV dan portofolio yang relevan', 'Tidak perlu persiapan apapun', 'Hanya modal keberanian tanpa skill', 'Menunggu tanpa usaha', 'a', 20);
+(76, 17, 'multiple_choice', 'Sebelum melamar kerja di bidang IT, sebaiknya kita mempersiapkan?', 'CV dan portofolio yang relevan', 'Tidak perlu persiapan apapun', 'Hanya modal keberanian tanpa skill', 'Menunggu tanpa usaha', 'a', 20),
+(77, 18, 'multiple_choice', 'Apa tujuan utama keamanan siber?', 'melindungi data dan sistem digital dari ancaman', 'membuat semua situs aman', 'menghapus semua file', 'mengganti perangkat komputer', 'a', 10),
+(78, 18, 'multiple_choice', 'Tindakan paling aman saat menerima email mencurigakan adalah?', 'mengabaikan dan mengecek sumbernya dengan cara resmi', 'langsung mengklik tautannya', 'membalas dengan data pribadi', 'membagikan ke teman', 'a', 10),
+(79, 18, 'multiple_choice', 'Apa fungsi autentikasi dua langkah?', 'menambah lapisan keamanan saat login', 'menghapus password', 'mengganti format file', 'membatasi koneksi internet', 'a', 10),
+(80, 18, 'multiple_choice', 'Kenapa data bisnis perlu dilindungi?', 'karena data sensitif bisa merugikan organisasi jika bocor', 'karena data tidak bisa dipakai', 'karena semua data sama', 'karena bisnis tidak perlu data', 'a', 10),
+(81, 18, 'multiple_choice', 'Yang paling tepat saat melihat link mencurigakan adalah?', 'menghindari klik dan mengecek domain asli', 'langsung membuka untuk membuktikannya', 'mengirim ke semua teman', 'membagikan di grup kerja', 'a', 10),
+(82, 19, 'multiple_choice', 'Apa fungsi variabel dalam Python?', 'menyimpan data yang akan dipakai program', 'menghapus file', 'mencegah internet', 'membuat desain web', 'a', 10),
+(83, 19, 'multiple_choice', 'Struktur if digunakan untuk?', 'membuat keputusan berdasarkan kondisi', 'mengulang kode tanpa batas', 'mengganti nama file', 'menghentikan program', 'a', 10),
+(84, 19, 'multiple_choice', 'Apa manfaat loop dalam otomatisasi?', 'mengulang tugas tanpa menulis berulang', 'menghilangkan seluruh data', 'menambah password', 'mengatur tampilan layar', 'a', 10),
+(85, 19, 'multiple_choice', 'Kapan Python cocok dipakai untuk pekerjaan?', 'ketika ada tugas berulang dan data yang perlu diproses', 'hanya saat menggambar', 'hanya saat menonton video', 'hanya saat membuat game', 'a', 10),
+(86, 19, 'multiple_choice', 'List di Python berfungsi untuk?', 'menyimpan beberapa nilai dalam satu variabel', 'merubah warna layar', 'membuat email', 'membatasi internet', 'a', 10),
+(87, 20, 'multiple_choice', 'Fungsi utama Microsoft Word adalah?', 'membuat dan mengedit dokumen', 'mengolah angka', 'membuat database server', 'mengedit foto', 'a', 10),
+(88, 20, 'multiple_choice', 'Rumus Excel yang digunakan untuk menjumlahkan data adalah?', 'SUM', 'IF', 'AVERAGE', 'TEXT', 'a', 10),
+(89, 20, 'multiple_choice', 'Fungsi utama PowerPoint adalah?', 'membuat presentasi visual', 'mengolah tabel', 'mengedit video', 'membuat email', 'a', 10),
+(90, 20, 'multiple_choice', 'Manfaat menggunakan bullet point di Word adalah?', 'membuat informasi lebih mudah dibaca', 'menyembunyikan isi dokumen', 'mempercepat printer', 'menghapus semua halaman', 'a', 10),
+(91, 20, 'multiple_choice', 'Mengapa tata letak slide harus sederhana?', 'agar audiens lebih mudah memahami pesan', 'karena semua slide harus penuh', 'karena ini aturan teknis', 'karena warna harus banyak', 'a', 10),
+(92, 21, 'multiple_choice', 'AI paling sering digunakan untuk?', 'membantu proses analisis dan otomatisasi', 'mengganti semua manusia', 'menghapus semua data', 'membuat mesin listrik', 'a', 10),
+(93, 21, 'multiple_choice', 'Apa yang harus dilakukan sebelum menerima hasil AI?', 'menganalisa dan memverifikasi kebenarannya', 'langsung mengirim tanpa cek', 'langsung percaya 100%', 'menghapus semua data lain', 'a', 10),
+(94, 21, 'multiple_choice', 'Mengapa etika penting dalam penggunaan AI?', 'agar penggunaan AI tetap aman dan bertanggung jawab', 'karena AI tidak membutuhkan etika', 'karena semua AI selalu benar', 'karena AI tidak punya data', 'a', 10),
+(95, 21, 'multiple_choice', 'AI dapat membantu pekerjaan seperti?', 'menulis ringkasan dan menganalisis data', 'menghentikan semua internet', 'menyusun jadwal tanpa logika', 'menghapus program', 'a', 10),
+(96, 21, 'multiple_choice', 'Kebiasaan bijak menggunakan AI adalah?', 'menggunakannya sebagai alat bantu sambil tetap kritis', 'menggunakannya tanpa evaluasi', 'tidak pernah digunakan sama sekali', 'menghasilkan konten tanpa sumber', 'a', 10),
+(97, 22, 'multiple_choice', 'Tujuan personal branding adalah?', 'membuat orang lebih mudah mengenali kemampuan dan nilai profesionalmu', 'menyembunyikan identitas', 'mengurangi semua portofolio', 'menghapus profil online', 'a', 10),
+(98, 22, 'multiple_choice', 'Platform yang sering dipakai untuk profil profesional adalah?', 'LinkedIn', 'Game online', 'Aplikasi musik', 'File dokumen pribadi', 'a', 10),
+(99, 22, 'multiple_choice', 'Keuntungan portofolio digital adalah?', 'menunjukkan bukti kemampuan secara nyata', 'menghapus semua pengalaman', 'mengganggu rekruter', 'membuat profil tampil rumit', 'a', 10),
+(100, 22, 'multiple_choice', 'Komunikasi profesional yang baik biasanya?', 'jelas, sopan, dan terstruktur', 'panjang tanpa inti', 'menggunakan kata kasar', 'mengabaikan detail', 'a', 10),
+(101, 22, 'multiple_choice', 'Konten profil digital yang baik adalah?', 'rapi, konsisten, dan relevan dengan tujuan karier', 'semua informasi tanpa filter', 'tidak perlu diperbarui', 'hanya foto tanpa deskripsi', 'a', 10);
 
 -- --------------------------------------------------------
 
@@ -339,7 +451,7 @@ CREATE TABLE `exam_results` (
   `score` int NOT NULL,
   `passed` tinyint(1) NOT NULL,
   `attempt_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `exam_results`
@@ -347,7 +459,8 @@ CREATE TABLE `exam_results` (
 
 INSERT INTO `exam_results` (`id`, `user_id`, `exam_id`, `score`, `passed`, `attempt_date`) VALUES
 (3, 3, 6, 100, 1, '2026-08-10 05:27:11'),
-(4, 3, 3, 100, 1, '2026-08-10 05:40:54');
+(4, 3, 3, 100, 1, '2026-08-10 05:40:54'),
+(5, 1, 3, 100, 1, '2026-08-13 07:33:30');
 
 -- --------------------------------------------------------
 
@@ -365,7 +478,7 @@ CREATE TABLE `forum_posts` (
   `is_solved` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `is_official` tinyint(1) DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `forum_posts`
@@ -373,7 +486,8 @@ CREATE TABLE `forum_posts` (
 
 INSERT INTO `forum_posts` (`id`, `user_id`, `title`, `content`, `upvotes`, `downvotes`, `is_solved`, `created_at`, `is_official`) VALUES
 (1, 1, 'errotrdsgfgd', 'hhdf', 0, 0, 0, '2026-08-07 11:56:20', 0),
-(2, 3, 'HIDUP JOKOWI', 'WE WOK THE TOK', 0, 0, 0, '2026-08-09 08:58:44', 0);
+(2, 3, 'HIDUP JOKOWI', 'WE WOK THE TOK', 0, 0, 0, '2026-08-09 08:58:44', 0),
+(3, 1, 'halo', 'halo semua', 0, 0, 0, '2026-08-13 17:29:34', 1);
 
 -- --------------------------------------------------------
 
@@ -389,7 +503,70 @@ CREATE TABLE `forum_replies` (
   `upvotes` int DEFAULT '0',
   `is_accepted` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `forum_votes`
+--
+
+CREATE TABLE `forum_votes` (
+  `id` int NOT NULL,
+  `target_type` varchar(20) NOT NULL,
+  `target_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `vote_type` varchar(10) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `gamification_perks`
+--
+
+CREATE TABLE `gamification_perks` (
+  `id` int NOT NULL,
+  `type` enum('avatar_frame','name_effect','profile_effect','banner_gif','card_border','card_background','cursor_effect','badge_effect','entrance_anim') NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `value` text NOT NULL,
+  `required_badges` int NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `gamification_perks`
+--
+
+INSERT INTO `gamification_perks` (`id`, `type`, `name`, `value`, `required_badges`, `created_at`) VALUES
+(1, 'avatar_frame', 'Ring of Fire', 'box-shadow: 0 0 10px #ff4500, 0 0 20px #ff4500; border: 4px solid #ff4500;', 15, '2026-08-15 07:28:23'),
+(2, 'avatar_frame', 'Hacker Matrix', 'border: 4px solid #00ff00; box-shadow: 0 0 15px #00ff00;', 15, '2026-08-15 07:28:23'),
+(3, 'name_effect', 'Rainbow Gradient', 'background-image: linear-gradient(to left, violet, indigo, blue, green, yellow, orange, red); -webkit-background-clip: text; color: transparent; font-weight: 800;', 20, '2026-08-15 07:28:23'),
+(4, 'name_effect', 'Gold VIP', 'color: #ffd700; text-shadow: 0 0 10px #ffd700; font-weight: 800;', 20, '2026-08-15 07:28:23'),
+(5, 'profile_effect', 'Matrix Rain', 'matrix', 30, '2026-08-15 07:28:23'),
+(6, 'profile_effect', 'Snowflakes', 'snow', 30, '2026-08-15 07:28:23'),
+(7, 'banner_gif', 'Champion Banner', 'https://assets-v2.lottiefiles.com/a/618fc384-1184-11ee-94d3-7fa9529e93c3/OIgiq15Qro.mp4', 10, '2026-08-15 07:55:17'),
+(8, 'banner_gif', 'Trophy Banner', 'https://assets-v2.lottiefiles.com/a/745fc364-117b-11ee-b7ec-9f18a8a356e0/8lgzK4zlmD.mp4', 10, '2026-08-15 07:55:17'),
+(9, 'banner_gif', 'Winner Badge Banner', 'https://assets-v2.lottiefiles.com/a/ed5ae48c-117c-11ee-afee-879cb97bcc98/HdLCGkInQ3.mp4', 10, '2026-08-15 07:55:17'),
+(10, 'banner_gif', 'Banner GIF', 'profile-banner-1.gif', 10, '2026-08-15 07:55:39'),
+(11, 'banner_gif', 'Banner GIF', 'profile-banner-2.gif', 10, '2026-08-15 07:55:39'),
+(12, 'banner_gif', 'Banner GIF', 'profile-banner-3.gif', 10, '2026-08-15 07:55:39'),
+(14, 'profile_effect', 'Wining Particle Animatio', 'banner_1786782746.gif', 15, '2026-08-15 08:32:26'),
+(15, 'card_border', 'blue gloww', 'border: 2px solid #0b57d0; box-shadow: 0 0 15px rgba(4, 79, 200, 0.4);', 15, '2026-08-15 08:50:15'),
+(16, 'card_background', 'Grid Cyberpunk', 'background-image: linear-gradient(rgba(0, 255, 128, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 128, 0.1) 1px, transparent 1px); background-size: 20px 20px; background-position: center; background-color: rgba(0,20,10,0.8);', 5, '2026-08-15 09:54:26'),
+(17, 'card_background', 'Anime Night Sky', 'background-image: url(\'https://media.giphy.com/media/u01ioCe6G8URG/giphy.gif\'); background-size: cover; background-position: center; opacity: 0.8;', 10, '2026-08-15 09:54:26'),
+(18, 'card_background', 'Sunset Vibes', 'background: linear-gradient(135deg, rgba(255,126,95,0.2) 0%, rgba(254,180,123,0.2) 100%);', 2, '2026-08-15 09:54:26'),
+(19, 'cursor_effect', 'Pedang Diamond', 'cursor: url(\'https://cdn.custom-cursor.com/db/8626/32/minecraft-diamond-sword-pointer.png\'), auto;', 5, '2026-08-15 09:54:26'),
+(20, 'cursor_effect', 'Neon Crosshair', 'cursor: crosshair;', 1, '2026-08-15 09:54:26'),
+(21, 'cursor_effect', 'Bintang Emas', 'cursor: url(\'https://cdn.custom-cursor.com/db/9675/32/cute-gold-star-pointer.png\'), auto;', 8, '2026-08-15 09:54:26'),
+(22, 'badge_effect', 'Legendary Gold Glow', 'border-color: #ffd700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);', 15, '2026-08-15 09:54:26'),
+(23, 'badge_effect', 'Neon Pink Glow', 'border-color: #ff00ff; box-shadow: 0 0 15px rgba(255, 0, 255, 0.8);', 10, '2026-08-15 09:54:26'),
+(24, 'badge_effect', 'Aqua Blue Glow', 'border-color: #00ffff; box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);', 5, '2026-08-15 09:54:26'),
+(25, 'entrance_anim', 'Zoom In Bouncy', 'animation: modalZoomIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;', 10, '2026-08-15 09:54:26'),
+(26, 'entrance_anim', '3D Flip', 'animation: modal3DFlip 0.6s ease-out forwards;', 20, '2026-08-15 09:54:26'),
+(27, 'entrance_anim', 'Slide Up', 'animation: modalSlideUp 0.4s ease-out forwards;', 2, '2026-08-15 09:54:26'),
+(29, 'card_background', 'tes', 'banner_1786907694.png', 15, '2026-08-16 19:14:54');
 
 -- --------------------------------------------------------
 
@@ -409,14 +586,14 @@ CREATE TABLE `materials` (
   `order_index` int NOT NULL,
   `unlock_keyword` varchar(50) DEFAULT NULL,
   `attachment_file` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `materials`
 --
 
 INSERT INTO `materials` (`id`, `course_id`, `title`, `thumbnail`, `content_type`, `content_text`, `video_url`, `xp_reward`, `order_index`, `unlock_keyword`, `attachment_file`) VALUES
-(3, 4, 'Apa itu Komputer, Laptop, dan Tablet?', NULL, 'text', 'Komputer, laptop, dan tablet adalah alat elektronik yang bisa membantu kita belajar, bermain, dan berkreasi.\n\nKomputer biasanya diletakkan di meja dan terdiri dari beberapa bagian: layar (untuk melihat), keyboard (untuk mengetik), mouse (untuk menunjuk dan mengklik), dan CPU (otak dari komputer yang memproses semua perintah).\n\nLaptop adalah komputer yang lebih kecil dan bisa dibawa ke mana-mana karena semua bagiannya sudah menyatu jadi satu.\n\nTablet lebih tipis lagi dan biasanya dioperasikan dengan cara disentuh langsung di layarnya (touchscreen), tanpa keyboard atau mouse.\n\nKetiganya punya fungsi yang mirip yaitu membantu kita mengerjakan tugas, mencari informasi, dan berkomunikasi, hanya bentuk dan cara pakainya yang berbeda.', NULL, 30, 1, NULL, NULL),
+(3, 4, 'Apa itu Komputer, Laptop, dan Tablet?', '', 'text', 'Komputer, laptop, dan tablet adalah alat elektronik yang bisa membantu kita belajar, bermain, dan berkreasi.\r\n\r\nKomputer biasanya diletakkan di meja dan terdiri dari beberapa bagian: layar (untuk melihat), keyboard (untuk mengetik), mouse (untuk menunjuk dan mengklik), dan CPU (otak dari komputer yang memproses semua perintah).\r\n\r\nLaptop adalah komputer yang lebih kecil dan bisa dibawa ke mana-mana karena semua bagiannya sudah menyatu jadi satu.\r\n\r\nTablet lebih tipis lagi dan biasanya dioperasikan dengan cara disentuh langsung di layarnya (touchscreen), tanpa keyboard atau mouse.\r\n\r\nKetiganya punya fungsi yang mirip yaitu membantu kita mengerjakan tugas, mencari informasi, dan berkomunikasi, hanya bentuk dan cara pakainya yang berbeda.', '', 30, 1, NULL, NULL),
 (4, 4, 'Bagaimana Internet Bekerja?', NULL, 'text', 'Internet adalah jaringan raksasa yang menghubungkan jutaan komputer di seluruh dunia, sehingga kita bisa saling berbagi informasi dengan cepat.\n\nBayangkan internet seperti perpustakaan yang sangat besar. Setiap halaman website adalah satu buku, dan kita bisa membukanya kapan saja lewat aplikasi bernama browser (seperti Chrome atau Firefox).\n\nUntuk terhubung ke internet, perangkat kita butuh sinyal. Sinyal ini bisa datang lewat kabel, atau lewat WiFi (sinyal tanpa kabel yang biasa ada di rumah atau sekolah).\n\nSetiap kali kita membuka website, perangkat kita \"bertanya\" ke internet dan internet \"menjawab\" dengan mengirimkan halaman yang kita minta, semuanya terjadi hanya dalam hitungan detik!', NULL, 30, 2, NULL, NULL),
 (5, 4, 'Menggunakan Perangkat dengan Baik', NULL, 'text', 'Menggunakan komputer, laptop, atau tablet itu menyenangkan, tapi kita juga perlu menggunakannya dengan cara yang sehat dan sopan.\n\nDuduk dengan posisi tegak dan jangan terlalu dekat dengan layar supaya mata dan punggung kita tetap sehat. Istirahatkan mata sesekali dengan melihat ke tempat yang jauh setiap 20-30 menit.\n\nSelalu minta izin orang tua atau guru sebelum menggunakan perangkat, dan gunakan sesuai waktu yang sudah disepakati bersama.\n\nJangan lupa untuk menjaga perangkat dengan baik, misalnya tidak makan atau minum di dekatnya, dan meletakkannya di tempat yang aman setelah selesai digunakan.', NULL, 30, 3, NULL, NULL),
 (6, 5, 'Password yang Kuat', NULL, 'text', 'Password adalah kata sandi rahasia yang kita gunakan untuk masuk ke akun atau perangkat, supaya orang lain tidak bisa sembarangan membukanya.\n\nPassword yang kuat sebaiknya menggabungkan huruf besar, huruf kecil, dan angka, misalnya \"Kucing77Lucu\" lebih aman dibandingkan \"123456\" atau tanggal lahir kita.\n\nJangan pernah menggunakan nama sendiri atau tanggal lahir sebagai password karena mudah ditebak orang lain.\n\nPassword harus dirahasiakan dan hanya boleh diketahui oleh kita sendiri dan orang tua atau wali, jangan pernah memberitahukannya ke teman atau orang asing.', NULL, 30, 1, NULL, NULL),
@@ -460,7 +637,22 @@ INSERT INTO `materials` (`id`, `course_id`, `title`, `thumbnail`, `content_type`
 (44, 17, 'Menggunakan AI Secara Bertanggung Jawab', NULL, 'text', 'AI adalah alat yang sangat membantu, tapi perlu digunakan secara bijak dan bertanggung jawab.\n\nSelalu verifikasi ulang informasi yang diberikan oleh AI, karena AI bisa saja memberikan jawaban yang terdengar meyakinkan namun sebenarnya salah atau tidak akurat.\n\nHindari plagiarisme, yaitu mengklaim hasil karya AI sebagai karya asli buatan sendiri tanpa keterangan, terutama dalam konteks tugas sekolah atau karya ilmiah. Sebaiknya gunakan AI sebagai alat bantu untuk belajar, bukan pengganti proses berpikir kita sendiri.\n\nBersikap transparan tentang penggunaan AI (misalnya mencantumkan jika suatu bagian tulisan dibantu AI) adalah bagian dari etika digital yang penting untuk dijaga di era teknologi saat ini.', NULL, 50, 3, NULL, NULL),
 (45, 18, 'Membuat CV Digital', NULL, 'text', 'CV (Curriculum Vitae) adalah dokumen ringkas yang berisi data diri, latar belakang pendidikan, pengalaman, dan keterampilan (skill) yang kita miliki, digunakan saat melamar pekerjaan atau magang.\n\nKomponen penting dalam CV: data diri (nama, kontak), riwayat pendidikan, pengalaman (organisasi, proyek, magang jika ada), dan daftar skill yang relevan dengan posisi yang dilamar.\n\nTips membuat CV yang baik: buat ringkas (idealnya 1 halaman), gunakan bahasa yang jelas dan jujur, serta sesuaikan isi CV dengan posisi yang dilamar, jangan menggunakan CV yang sama persis untuk semua lamaran.\n\nCV digital biasanya dibuat dalam format PDF agar tampilannya tetap rapi ketika dibuka di perangkat manapun.', NULL, 50, 1, NULL, NULL),
 (46, 18, 'Membangun Portofolio Online', NULL, 'text', 'Portofolio online adalah kumpulan hasil karya atau proyek terbaik yang kita tampilkan secara digital, untuk menunjukkan kemampuan nyata kepada calon perekrut atau klien.\n\nBerbeda dengan CV yang berupa teks ringkas, portofolio menunjukkan bukti nyata dari kemampuan kita, misalnya contoh website yang pernah dibuat, desain grafis, tulisan, atau proyek coding lainnya.\n\nAda banyak platform yang bisa digunakan untuk membangun portofolio online, seperti GitHub (khusus untuk kode program), atau website portofolio pribadi yang berisi rangkuman proyek beserta penjelasannya.\n\nPortofolio yang baik menampilkan proyek-proyek terbaik saja (kualitas lebih penting dari kuantitas), disertai penjelasan singkat tentang peran kita dan hasil yang dicapai dalam setiap proyek.', NULL, 50, 2, NULL, NULL),
-(47, 18, 'Mengenal Dunia Kerja IT', NULL, 'text', 'Dunia kerja IT memiliki banyak peran (role) yang berbeda, masing-masing dengan fokus dan skill yang dibutuhkan.\n\nJunior Developer bertugas menulis dan membantu mengembangkan kode program untuk aplikasi atau website, biasanya di bawah bimbingan developer yang lebih senior. Skill utama: menguasai minimal satu bahasa pemrograman dan logika pemrograman dasar.\n\nData Analyst berfokus pada mengumpulkan, mengolah, dan menganalisis data untuk menghasilkan wawasan (insight) yang berguna bagi pengambilan keputusan. Skill utama: kemampuan mengolah data (misalnya Excel, SQL) dan berpikir analitis.\n\nMasih banyak peran IT lain seperti UI/UX Designer (merancang tampilan aplikasi), QA Tester (menguji kualitas aplikasi), dan Project Manager (mengelola jalannya proyek). Mengenal berbagai peran ini membantu kita menemukan bidang yang paling sesuai dengan minat dan kekuatan kita.', NULL, 50, 3, NULL, NULL);
+(47, 18, 'Mengenal Dunia Kerja IT', NULL, 'text', 'Dunia kerja IT memiliki banyak peran (role) yang berbeda, masing-masing dengan fokus dan skill yang dibutuhkan.\n\nJunior Developer bertugas menulis dan membantu mengembangkan kode program untuk aplikasi atau website, biasanya di bawah bimbingan developer yang lebih senior. Skill utama: menguasai minimal satu bahasa pemrograman dan logika pemrograman dasar.\n\nData Analyst berfokus pada mengumpulkan, mengolah, dan menganalisis data untuk menghasilkan wawasan (insight) yang berguna bagi pengambilan keputusan. Skill utama: kemampuan mengolah data (misalnya Excel, SQL) dan berpikir analitis.\n\nMasih banyak peran IT lain seperti UI/UX Designer (merancang tampilan aplikasi), QA Tester (menguji kualitas aplikasi), dan Project Manager (mengelola jalannya proyek). Mengenal berbagai peran ini membantu kita menemukan bidang yang paling sesuai dengan minat dan kekuatan kita.', NULL, 50, 3, NULL, NULL),
+(48, 19, 'Pengenalan Keamanan Siber', NULL, 'text', 'Keamanan siber adalah upaya melindungi data, akun, dan perangkat dari ancaman digital seperti phishing, malware, dan pencurian identitas. Di dunia kerja, keamanan data sangat penting karena informasi sensitif bisa merugikan organisasi jika jatuh ke tangan yang salah.', NULL, 40, 1, NULL, NULL),
+(49, 19, 'Phishing dan Social Engineering', NULL, 'text', 'Phishing adalah teknik penipuan yang mengecoh pengguna untuk membuka link atau membagikan informasi pribadi. Social engineering memanfaatkan psikologi manusia untuk mendapatkan akses. Kunci pencegahan adalah skeptis terhadap pesan mendadak, mengecek sumber, dan tidak pernah membagikan password atau OTP.', NULL, 40, 2, NULL, NULL),
+(50, 19, 'Keamanan Akun & Data Bisnis', NULL, 'text', 'Untuk keamanan akun, gunakan password unik, aktifkan autentikasi dua langkah, dan cadangkan data secara rutin. Di lingkungan bisnis, data pelanggan, keuangan, dan dokumen internal harus terlindungi dengan aturan akses yang jelas dan kebiasaan kerja yang aman.', NULL, 45, 3, NULL, NULL),
+(51, 20, 'Pengenalan Python untuk Kerja', NULL, 'text', 'Python adalah bahasa pemrograman yang mudah dipelajari dan sering dipakai untuk otomatisasi tugas. Dengan Python, kamu bisa membuat skrip untuk mengolah data, meringkas file, atau menyederhanakan pekerjaan berulang.', NULL, 40, 1, NULL, NULL),
+(52, 20, 'Variabel, List, dan Kondisi', NULL, 'text', 'Variabel menampung data, sedangkan list memungkinkan kita menyimpan beberapa data sekaligus. Struktur kondisi seperti if dan else membantu komputer mengambil keputusan berdasarkan aturan tertentu.', NULL, 40, 2, NULL, NULL),
+(53, 20, 'Loop dan Automasi Tugas', NULL, 'text', 'Loop atau perulangan memungkinkan tugas dijalankan berulang tanpa menulis kode berulang. Ini sangat berguna saat mengolah berkas, membuat laporan, atau menjalankan tugas yang berulang setiap hari.', NULL, 45, 3, NULL, NULL),
+(54, 21, 'Word untuk Dokumen Profesional', NULL, 'text', 'Microsoft Word membantu menulis proposal, surat, laporan, dan dokumen resmi. Fitur seperti heading, bullet, tabel, dan format paragraf membuat dokumen lebih rapi dan mudah dibaca.', NULL, 40, 1, NULL, NULL),
+(55, 21, 'Excel untuk Data & Analisis', NULL, 'text', 'Excel digunakan untuk menghitung, mengelola data, dan membuat tabel. Fungsi dasar seperti SUM, AVERAGE, IF, dan format tabel akan sangat membantu pada pekerjaan kantor maupun tugas sekolah.', NULL, 40, 2, NULL, NULL),
+(56, 21, 'PowerPoint untuk Presentasi', NULL, 'text', 'PowerPoint membantu menyampaikan ide dengan visual yang jelas. Slide yang baik berisi poin utama, desain yang tidak berlebihan, dan alur yang mudah dipahami audiens.', NULL, 45, 3, NULL, NULL),
+(57, 22, 'Apa Itu AI?', NULL, 'text', 'AI atau kecerdasan buatan adalah teknologi yang mampu memproses pola data dan membantu manusia dalam tugas tertentu. AI dapat membantu menulis, menganalisis data, dan mengotomatiskan pekerjaan sederhana.', NULL, 40, 1, NULL, NULL),
+(58, 22, 'AI untuk Produktivitas', NULL, 'text', 'AI dapat membantu menulis email, membuat ringkasan, menganalisis data, dan menyusun ide. Penggunaan AI yang benar akan mempercepat pekerjaan, tetapi tetap perlu cek hasilnya agar tetap akurat dan relevan.', NULL, 40, 2, NULL, NULL),
+(59, 22, 'Etika AI & Verifikasi', NULL, 'text', 'Penggunaan AI harus memperhatikan etika, privasi, dan tanggung jawab. Jangan langsung percaya seluruh hasil AI; selalu cek fakta, hindari plagiarisme, dan gunakan AI sebagai alat bantu, bukan pengganti berpikir kritis.', NULL, 45, 3, NULL, NULL),
+(60, 23, 'Dasar Personal Branding', NULL, 'text', 'Personal branding adalah cara seseorang menampilkan kemampuan, nilai, dan citra profesionalnya di dunia kerja. Branding yang kuat membuat calon perusahaan atau klien lebih mudah mengenali keunggulanmu.', NULL, 40, 1, NULL, NULL),
+(61, 23, 'Profil Digital & LinkedIn', NULL, 'text', 'LinkedIn dan platform digital lain menjadi tempat untuk menampilkan pengalaman kerja, proyek, dan kemampuan. Profil yang rapi, jelas, dan konsisten akan meningkatkan kredibilitasmu di mata rekruter atau mitra bisnis.', NULL, 40, 2, NULL, NULL),
+(62, 23, 'Portofolio dan Komunikasi Profesional', NULL, 'text', 'Portofolio membantu menunjukkan hasil kerja nyata. Selain itu, komunikasi profesional seperti email, presentasi, dan pesan kerja harus jelas, sopan, dan terstruktur agar hubungan kerja lebih efektif.', NULL, 45, 3, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -471,7 +663,7 @@ INSERT INTO `materials` (`id`, `course_id`, `title`, `thumbnail`, `content_type`
 CREATE TABLE `settings` (
   `setting_key` varchar(100) NOT NULL,
   `setting_value` text
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `settings`
@@ -483,7 +675,7 @@ INSERT INTO `settings` (`setting_key`, `setting_value`) VALUES
 ('enable_registration', '0'),
 ('enable_registration_google', '1'),
 ('enable_registration_manual', '1'),
-('maintenance_mode', '0');
+('maintenance_mode', '1');
 
 -- --------------------------------------------------------
 
@@ -508,17 +700,29 @@ CREATE TABLE `users` (
   `profile_color` varchar(20) DEFAULT '#4361ee',
   `last_login` datetime DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `allowed_categories` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `allowed_categories` varchar(255) DEFAULT NULL,
+  `weekly_target` int DEFAULT '600',
+  `banner_gif` varchar(255) DEFAULT NULL,
+  `avatar_frame_id` int DEFAULT NULL,
+  `name_effect_id` int DEFAULT NULL,
+  `profile_effect_id` int DEFAULT NULL,
+  `card_border_id` int DEFAULT NULL,
+  `card_background_id` int DEFAULT NULL,
+  `cursor_effect_id` int DEFAULT NULL,
+  `badge_effect_id` int DEFAULT NULL,
+  `entrance_anim_id` int DEFAULT NULL,
+  `custom_status` varchar(100) DEFAULT NULL,
+  `status_emoji` varchar(10) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `google_id`, `name`, `email`, `password`, `picture`, `birth_date`, `category`, `role`, `xp_points`, `streak_days`, `total_badges`, `profile_title`, `profile_color`, `last_login`, `created_at`, `allowed_categories`) VALUES
-(1, '116833722689297559750', 'kepo kamu', 'dedynurohim1@gmail.com', NULL, 'https://lh3.googleusercontent.com/a/ACg8ocIzr8abXJSF_1FALUV5-K3Pq6eqQzFyMsq9mw6-zOd-FY6hrHA=s96-c', '2026-08-07', 'Umum', 'admin', 0, 0, 0, 'Novice Coder', '#4361ee', '2026-08-11 09:50:00', '2026-08-06 18:12:17', NULL),
-(2, '105942729897026664092', 'Dedy Nurohim', 'dedynurohim01@gmail.com', NULL, 'https://lh3.googleusercontent.com/a/ACg8ocLfmp_oKJZEhvS5waZz-oOwYbiRrY4K7ryGmDVDLRw5MxIzlQ=s96-c', '2000-08-16', 'Umum', 'user', 0, 0, 0, 'Novice Coder', '#4361ee', '2026-08-07 20:10:30', '2026-08-07 09:25:09', NULL),
-(3, '114067548867849386620', 'Moh Rafie Nazar J', 'mohrafienazarjailani@gmail.com', NULL, 'https://lh3.googleusercontent.com/a/ACg8ocJ6Lx9xkvja0A62lamsxui__Axpbyk1jVvr3IsBFY_zY9e7eGlq=s96-c', '2005-09-11', 'Umum', 'user', 100, 0, 2, 'Novice Coder', '#4361ee', '2026-08-09 16:04:03', '2026-08-08 12:42:28', NULL);
+INSERT INTO `users` (`id`, `google_id`, `name`, `email`, `password`, `picture`, `birth_date`, `category`, `role`, `xp_points`, `streak_days`, `total_badges`, `profile_title`, `profile_color`, `last_login`, `created_at`, `allowed_categories`, `weekly_target`, `banner_gif`, `avatar_frame_id`, `name_effect_id`, `profile_effect_id`, `card_border_id`, `card_background_id`, `cursor_effect_id`, `badge_effect_id`, `entrance_anim_id`, `custom_status`, `status_emoji`) VALUES
+(1, '116833722689297559750', 'kepo kamu', 'dedynurohim1@gmail.com', '$2y$10$I7gdle7KAi3Q0QAnIenC/u8OhmS87UAwehcOsEHm5V7PnTeh/Bu9G', 'https://lh3.googleusercontent.com/a/ACg8ocIzr8abXJSF_1FALUV5-K3Pq6eqQzFyMsq9mw6-zOd-FY6hrHA=s96-c', '2026-08-07', 'Umum', 'admin', 620, 0, 22, '', '#4361ee', '2026-08-17 02:11:06', '2026-08-06 18:12:17', NULL, 660, 'https://assets-v2.lottiefiles.com/a/ed5ae48c-117c-11ee-afee-879cb97bcc98/HdLCGkInQ3.mp4', NULL, NULL, 14, 15, 17, 21, 22, 26, '', ''),
+(2, '105942729897026664092', 'Dedy Nurohim', 'dedynurohim01@gmail.com', NULL, 'https://lh3.googleusercontent.com/a/ACg8ocLfmp_oKJZEhvS5waZz-oOwYbiRrY4K7ryGmDVDLRw5MxIzlQ=s96-c', '2000-08-16', 'Umum', 'user', 0, 0, 0, 'Novice Coder', '#4361ee', '2026-08-17 02:25:02', '2026-08-07 09:25:09', 'SD', 600, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(3, '114067548867849386620', 'Moh Rafie Nazar J', 'mohrafienazarjailani@gmail.com', NULL, 'https://lh3.googleusercontent.com/a/ACg8ocJ6Lx9xkvja0A62lamsxui__Axpbyk1jVvr3IsBFY_zY9e7eGlq=s96-c', '2005-09-11', 'Umum', 'user', 100, 0, 2, 'Novice Coder', '#4361ee', '2026-08-09 16:04:03', '2026-08-08 12:42:28', NULL, 600, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -531,7 +735,7 @@ CREATE TABLE `user_badges` (
   `user_id` int NOT NULL,
   `badge_id` int NOT NULL,
   `earned_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `user_badges`
@@ -539,7 +743,29 @@ CREATE TABLE `user_badges` (
 
 INSERT INTO `user_badges` (`id`, `user_id`, `badge_id`, `earned_at`) VALUES
 (1, 3, 1, '2026-08-10 05:27:11'),
-(2, 3, 2, '2026-08-10 05:40:54');
+(2, 3, 2, '2026-08-10 05:40:54'),
+(4, 1, 1, '2026-08-15 07:15:11'),
+(5, 1, 2, '2026-08-15 07:15:11'),
+(6, 1, 3, '2026-08-15 07:15:11'),
+(7, 1, 4, '2026-08-15 07:15:11'),
+(8, 1, 5, '2026-08-15 07:15:11'),
+(9, 1, 6, '2026-08-15 07:15:11'),
+(10, 1, 7, '2026-08-15 07:15:11'),
+(11, 1, 8, '2026-08-15 07:15:11'),
+(12, 1, 9, '2026-08-15 07:15:11'),
+(13, 1, 10, '2026-08-15 07:15:11'),
+(14, 1, 11, '2026-08-15 07:15:11'),
+(15, 1, 12, '2026-08-15 07:15:11'),
+(16, 1, 13, '2026-08-15 07:15:11'),
+(17, 1, 14, '2026-08-15 07:15:11'),
+(18, 1, 15, '2026-08-15 07:15:11'),
+(19, 1, 16, '2026-08-15 07:15:11'),
+(20, 1, 17, '2026-08-15 07:15:11'),
+(21, 1, 18, '2026-08-15 07:15:11'),
+(22, 1, 19, '2026-08-15 07:15:11'),
+(23, 1, 20, '2026-08-15 07:15:11'),
+(24, 1, 21, '2026-08-15 07:15:11'),
+(25, 1, 22, '2026-08-15 07:15:11');
 
 -- --------------------------------------------------------
 
@@ -550,38 +776,48 @@ INSERT INTO `user_badges` (`id`, `user_id`, `badge_id`, `earned_at`) VALUES
 CREATE TABLE `user_learning_time` (
   `id` int NOT NULL,
   `user_id` int NOT NULL,
-  `course_id` int DEFAULT '0',
   `log_date` date NOT NULL,
   `time_spent` int DEFAULT '0',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `course_id` int DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `user_learning_time`
 --
 
-INSERT INTO `user_learning_time` (`id`, `user_id`, `log_date`, `time_spent`, `created_at`) VALUES
-(1, 2, '2026-08-04', 100, '2026-08-10 14:27:19'),
-(2, 2, '2026-08-05', 77, '2026-08-10 14:27:19'),
-(3, 2, '2026-08-06', 74, '2026-08-10 14:27:19'),
-(4, 2, '2026-08-07', 45, '2026-08-10 14:27:19'),
-(5, 2, '2026-08-08', 59, '2026-08-10 14:27:19'),
-(6, 2, '2026-08-09', 27, '2026-08-10 14:27:19'),
-(7, 2, '2026-08-10', 113, '2026-08-10 14:27:19'),
-(8, 1, '2026-08-04', 22, '2026-08-10 14:27:19'),
-(9, 1, '2026-08-05', 18, '2026-08-10 14:27:19'),
-(10, 1, '2026-08-06', 92, '2026-08-10 14:27:19'),
-(11, 1, '2026-08-07', 33, '2026-08-10 14:27:19'),
-(12, 1, '2026-08-08', 77, '2026-08-10 14:27:19'),
-(13, 1, '2026-08-09', 60, '2026-08-10 14:27:19'),
-(14, 1, '2026-08-10', 64, '2026-08-10 14:27:19'),
-(15, 3, '2026-08-04', 53, '2026-08-10 14:27:19'),
-(16, 3, '2026-08-05', 58, '2026-08-10 14:27:19'),
-(17, 3, '2026-08-06', 61, '2026-08-10 14:27:19'),
-(18, 3, '2026-08-07', 98, '2026-08-10 14:27:19'),
-(19, 3, '2026-08-08', 118, '2026-08-10 14:27:19'),
-(20, 3, '2026-08-09', 64, '2026-08-10 14:27:19'),
-(21, 3, '2026-08-10', 111, '2026-08-10 14:27:19');
+INSERT INTO `user_learning_time` (`id`, `user_id`, `log_date`, `time_spent`, `created_at`, `course_id`) VALUES
+(1, 2, '2026-08-04', 6000, '2026-08-10 14:27:19', 7),
+(2, 2, '2026-08-05', 4620, '2026-08-10 14:27:19', 6),
+(3, 2, '2026-08-06', 4440, '2026-08-10 14:27:19', 8),
+(4, 2, '2026-08-07', 2700, '2026-08-10 14:27:19', 8),
+(5, 2, '2026-08-08', 3540, '2026-08-10 14:27:19', 7),
+(6, 2, '2026-08-09', 1620, '2026-08-10 14:27:19', 5),
+(7, 2, '2026-08-10', 6780, '2026-08-10 14:27:19', 8),
+(8, 1, '2026-08-04', 1320, '2026-08-10 14:27:19', 8),
+(9, 1, '2026-08-05', 1080, '2026-08-10 14:27:19', 8),
+(10, 1, '2026-08-06', 5520, '2026-08-10 14:27:19', 7),
+(11, 1, '2026-08-07', 1980, '2026-08-10 14:27:19', 8),
+(12, 1, '2026-08-08', 4620, '2026-08-10 14:27:19', 4),
+(13, 1, '2026-08-09', 3600, '2026-08-10 14:27:19', 7),
+(14, 1, '2026-08-10', 3840, '2026-08-10 14:27:19', 4),
+(15, 3, '2026-08-04', 3180, '2026-08-10 14:27:19', 8),
+(16, 3, '2026-08-05', 3480, '2026-08-10 14:27:19', 7),
+(17, 3, '2026-08-06', 3660, '2026-08-10 14:27:19', 4),
+(18, 3, '2026-08-07', 5880, '2026-08-10 14:27:19', 5),
+(19, 3, '2026-08-08', 7080, '2026-08-10 14:27:19', 8),
+(20, 3, '2026-08-09', 3840, '2026-08-10 14:27:19', 8),
+(21, 3, '2026-08-10', 6660, '2026-08-10 14:27:19', 4),
+(22, 1, '2026-08-11', 540, '2026-08-11 10:08:05', 6),
+(23, 1, '2026-08-13', 1020, '2026-08-13 13:39:34', 4),
+(24, 1, '2026-08-13', 3030, '2026-08-13 21:39:06', 0),
+(25, 1, '2026-08-13', 30, '2026-08-13 22:15:25', 11),
+(26, 1, '2026-08-13', 10, '2026-08-13 22:53:47', 7),
+(27, 1, '2026-08-13', 320, '2026-08-13 23:01:31', 8),
+(28, 1, '2026-08-14', 120, '2026-08-14 17:45:23', 0),
+(29, 1, '2026-08-15', 3360, '2026-08-15 13:12:36', 0),
+(30, 1, '2026-08-16', 440, '2026-08-17 02:11:48', 0),
+(31, 2, '2026-08-16', 20, '2026-08-17 02:25:26', 0);
 
 -- --------------------------------------------------------
 
@@ -598,7 +834,7 @@ CREATE TABLE `user_notifications` (
   `link_url` varchar(255) DEFAULT '#',
   `is_read` tinyint(1) DEFAULT '0',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `user_notifications`
@@ -624,7 +860,7 @@ CREATE TABLE `user_progress` (
   `material_id` int NOT NULL,
   `status` enum('started','completed') DEFAULT 'started',
   `completed_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `user_progress`
@@ -637,12 +873,26 @@ INSERT INTO `user_progress` (`id`, `user_id`, `material_id`, `status`, `complete
 (6, 3, 14, 'completed', '2026-08-10 12:26:24'),
 (7, 3, 4, 'completed', '2026-08-10 12:40:05'),
 (8, 3, 5, 'completed', '2026-08-10 12:40:07'),
-(9, 1, 3, 'started', NULL),
-(10, 1, 4, 'started', NULL),
-(11, 1, 5, 'started', NULL),
+(9, 1, 3, 'completed', '2026-08-13 14:01:45'),
+(10, 1, 4, 'completed', '2026-08-13 14:05:02'),
+(11, 1, 5, 'completed', '2026-08-13 14:32:41'),
 (12, 1, 18, 'started', NULL),
 (13, 1, 19, 'started', NULL),
-(14, 1, 21, 'started', NULL);
+(14, 1, 21, 'started', NULL),
+(15, 1, 6, 'completed', '2026-08-13 14:30:55'),
+(16, 1, 7, 'started', NULL),
+(17, 1, 12, 'completed', '2026-08-13 21:54:31'),
+(18, 1, 13, 'completed', '2026-08-13 21:54:34'),
+(19, 1, 14, 'completed', '2026-08-13 21:54:34'),
+(20, 1, 15, 'completed', '2026-08-13 21:55:06'),
+(21, 1, 16, 'completed', '2026-08-13 21:55:08'),
+(22, 1, 17, 'completed', '2026-08-13 21:57:49'),
+(23, 1, 39, 'completed', '2026-08-13 22:00:29'),
+(24, 1, 40, 'completed', '2026-08-13 22:00:30'),
+(25, 1, 41, 'completed', '2026-08-13 22:00:32'),
+(26, 1, 24, 'completed', '2026-08-13 22:06:25'),
+(27, 1, 25, 'completed', '2026-08-13 22:06:27'),
+(28, 1, 26, 'completed', '2026-08-13 22:06:29');
 
 --
 -- Indexes for dumped tables
@@ -714,6 +964,15 @@ ALTER TABLE `courses`
   ADD KEY `created_by` (`created_by`);
 
 --
+-- Indexes for table `course_ratings`
+--
+ALTER TABLE `course_ratings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `course_user_unique` (`course_id`,`user_id`),
+  ADD KEY `course_id` (`course_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
 -- Indexes for table `exams`
 --
 ALTER TABLE `exams`
@@ -751,6 +1010,19 @@ ALTER TABLE `forum_replies`
   ADD KEY `user_id` (`user_id`);
 
 --
+-- Indexes for table `forum_votes`
+--
+ALTER TABLE `forum_votes`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `user_vote` (`target_type`,`target_id`,`user_id`);
+
+--
+-- Indexes for table `gamification_perks`
+--
+ALTER TABLE `gamification_perks`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `materials`
 --
 ALTER TABLE `materials`
@@ -768,7 +1040,12 @@ ALTER TABLE `settings`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `email` (`email`);
+  ADD UNIQUE KEY `email` (`email`),
+  ADD KEY `fk_user_card_border` (`card_border_id`),
+  ADD KEY `fk_user_card_bg` (`card_background_id`),
+  ADD KEY `fk_user_cursor` (`cursor_effect_id`),
+  ADD KEY `fk_user_badge_eff` (`badge_effect_id`),
+  ADD KEY `fk_user_entrance` (`entrance_anim_id`);
 
 --
 -- Indexes for table `user_badges`
@@ -783,7 +1060,7 @@ ALTER TABLE `user_badges`
 --
 ALTER TABLE `user_learning_time`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `user_id` (`user_id`,`log_date`,`course_id`);
+  ADD UNIQUE KEY `idx_unique_time` (`user_id`,`log_date`,`course_id`);
 
 --
 -- Indexes for table `user_notifications`
@@ -808,7 +1085,7 @@ ALTER TABLE `user_progress`
 -- AUTO_INCREMENT for table `badges`
 --
 ALTER TABLE `badges`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `broadcasts`
@@ -826,19 +1103,19 @@ ALTER TABLE `broadcast_views`
 -- AUTO_INCREMENT for table `certificates`
 --
 ALTER TABLE `certificates`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `championships`
 --
 ALTER TABLE `championships`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `championship_challenges`
 --
 ALTER TABLE `championship_challenges`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `championship_completed_challenges`
@@ -856,31 +1133,37 @@ ALTER TABLE `championship_participants`
 -- AUTO_INCREMENT for table `courses`
 --
 ALTER TABLE `courses`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+
+--
+-- AUTO_INCREMENT for table `course_ratings`
+--
+ALTER TABLE `course_ratings`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `exams`
 --
 ALTER TABLE `exams`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `exam_questions`
 --
 ALTER TABLE `exam_questions`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=102;
 
 --
 -- AUTO_INCREMENT for table `exam_results`
 --
 ALTER TABLE `exam_results`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `forum_posts`
 --
 ALTER TABLE `forum_posts`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `forum_replies`
@@ -889,10 +1172,22 @@ ALTER TABLE `forum_replies`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `forum_votes`
+--
+ALTER TABLE `forum_votes`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `gamification_perks`
+--
+ALTER TABLE `gamification_perks`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+
+--
 -- AUTO_INCREMENT for table `materials`
 --
 ALTER TABLE `materials`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -904,13 +1199,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `user_badges`
 --
 ALTER TABLE `user_badges`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `user_learning_time`
 --
 ALTER TABLE `user_learning_time`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `user_notifications`
@@ -922,7 +1217,7 @@ ALTER TABLE `user_notifications`
 -- AUTO_INCREMENT for table `user_progress`
 --
 ALTER TABLE `user_progress`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- Constraints for dumped tables
@@ -1005,6 +1300,16 @@ ALTER TABLE `forum_replies`
 --
 ALTER TABLE `materials`
   ADD CONSTRAINT `materials_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `users`
+--
+ALTER TABLE `users`
+  ADD CONSTRAINT `fk_user_badge_eff` FOREIGN KEY (`badge_effect_id`) REFERENCES `gamification_perks` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_user_card_bg` FOREIGN KEY (`card_background_id`) REFERENCES `gamification_perks` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_user_card_border` FOREIGN KEY (`card_border_id`) REFERENCES `gamification_perks` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_user_cursor` FOREIGN KEY (`cursor_effect_id`) REFERENCES `gamification_perks` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_user_entrance` FOREIGN KEY (`entrance_anim_id`) REFERENCES `gamification_perks` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `user_badges`

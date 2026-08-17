@@ -21,10 +21,28 @@ if (!$user_id || !ctype_digit((string)$user_id)) {
     exit();
 }
 
-// Ambil data profil publik (jangan pernah kembalikan kolom password/email di endpoint publik ini)
-$stmt = $pdo->prepare("SELECT id, name, picture, profile_title, profile_color, banner_gif, category, 
-                               xp_points, streak_days, total_badges, created_at 
-                        FROM users WHERE id = ?");
+// Ambil data profil publik beserta efek gamifikasi
+$stmt = $pdo->prepare("SELECT u.id, u.name, u.picture, u.profile_title, u.profile_color, u.banner_gif, u.category, 
+                               u.xp_points, u.streak_days, u.total_badges, u.created_at,
+                               u.custom_status, u.status_emoji,
+                               f.value AS avatar_frame_css,
+                               n.value AS name_effect_css,
+                               p.value AS profile_effect_class,
+                               c.value AS card_border_css,
+                               bg.value AS card_background_css,
+                               ce.value AS cursor_effect_class,
+                               be.value AS badge_effect_css,
+                               ea.value AS entrance_anim_class
+                        FROM users u
+                        LEFT JOIN gamification_perks f ON u.avatar_frame_id = f.id
+                        LEFT JOIN gamification_perks n ON u.name_effect_id = n.id
+                        LEFT JOIN gamification_perks p ON u.profile_effect_id = p.id
+                        LEFT JOIN gamification_perks c ON u.card_border_id = c.id
+                        LEFT JOIN gamification_perks bg ON u.card_background_id = bg.id
+                        LEFT JOIN gamification_perks ce ON u.cursor_effect_id = ce.id
+                        LEFT JOIN gamification_perks be ON u.badge_effect_id = be.id
+                        LEFT JOIN gamification_perks ea ON u.entrance_anim_id = ea.id
+                        WHERE u.id = ?");
 $stmt->execute([$user_id]);
 $user = $stmt->fetch();
 
@@ -55,5 +73,15 @@ echo json_encode([
     'streak_days' => (int)$user['streak_days'],
     'total_badges' => (int)$user['total_badges'],
     'joined_at' => $user['created_at'],
-    'badges' => $badges,
+    'custom_status' => $user['custom_status'],
+    'status_emoji' => $user['status_emoji'],
+    'avatar_frame_css' => $user['avatar_frame_css'],
+    'name_effect_css' => $user['name_effect_css'],
+    'profile_effect_class' => $user['profile_effect_class'],
+    'card_border_css' => $user['card_border_css'],
+    'card_background_css' => $user['card_background_css'],
+    'cursor_effect_class' => $user['cursor_effect_class'],
+    'badge_effect_css' => $user['badge_effect_css'],
+    'entrance_anim_class' => $user['entrance_anim_class'],
+    'badges' => $badges
 ]);

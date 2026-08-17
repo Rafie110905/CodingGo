@@ -15,21 +15,7 @@ $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->execute([$user_id]);
 $user = $stmt->fetch();
 
-// Daftar animasi banner dari LottieFiles (link video MP4 resmi, stabil untuk hotlink + gambar preview asli)
-$LOTTIE_BANNERS = [
-    'https://assets-v2.lottiefiles.com/a/618fc384-1184-11ee-94d3-7fa9529e93c3/OIgiq15Qro.mp4' => [
-        'label' => 'Champion',
-        'poster' => 'https://assets-v2.lottiefiles.com/a/618fc384-1184-11ee-94d3-7fa9529e93c3/og-image-Vt8wr2kyGJ.png',
-    ],
-    'https://assets-v2.lottiefiles.com/a/745fc364-117b-11ee-b7ec-9f18a8a356e0/8lgzK4zlmD.mp4' => [
-        'label' => 'Trophy',
-        'poster' => 'https://assets-v2.lottiefiles.com/a/745fc364-117b-11ee-b7ec-9f18a8a356e0/og-image-et6mtZ3AmM.png',
-    ],
-    'https://assets-v2.lottiefiles.com/a/ed5ae48c-117c-11ee-afee-879cb97bcc98/HdLCGkInQ3.mp4' => [
-        'label' => 'Winner Badge',
-        'poster' => 'https://assets-v2.lottiefiles.com/a/ed5ae48c-117c-11ee-afee-879cb97bcc98/og-image-PW3bvKtIrm.png',
-    ],
-];
+// Gamification perks removed (moved to user_customization.php)
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
@@ -58,30 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt_upd->execute([$name, $email, $birth_date, $category, $picture, $user_id]);
             }
 
-            // Handle Gamification unlocks if submitted
-            if (isset($_POST['profile_color']) && ($user['total_badges'] >= 3 || $_SESSION['user_role'] === 'admin')) {
-                $p_color = $_POST['profile_color'];
-                $pdo->prepare("UPDATE users SET profile_color=? WHERE id=?")->execute([$p_color, $user_id]);
-            }
-            if (isset($_POST['profile_title']) && ($user['total_badges'] >= 5 || $_SESSION['user_role'] === 'admin')) {
-                $p_title = trim($_POST['profile_title']);
-                $pdo->prepare("UPDATE users SET profile_title=? WHERE id=?")->execute([$p_title, $user_id]);
-            }
-            if (isset($_POST['banner_gif']) && ($user['total_badges'] >= 10 || $_SESSION['user_role'] === 'admin')) {
-                $available_banner_files = glob('src/img/profile-banner-*.gif') ?: [];
-                $allowed_banners = [''];
-                foreach ($available_banner_files as $file) {
-                    $allowed_banners[] = basename($file);
-                }
-                foreach (array_keys($LOTTIE_BANNERS) as $url) {
-                    $allowed_banners[] = $url;
-                }
-
-                $b_gif = $_POST['banner_gif'];
-                if (in_array($b_gif, $allowed_banners, true)) {
-                    $pdo->prepare("UPDATE users SET banner_gif=? WHERE id=?")->execute([$b_gif ?: null, $user_id]);
-                }
-            }
+            // Gamification logic removed (moved to user_customization.php)
             
             // Update session if needed
             $_SESSION['user_name'] = $name;
@@ -99,8 +62,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<div class="dash-left" style="grid-column: 1 / -1; max-width: 800px; margin: 0 auto; width: 100%;">
-    <div class="section-header" style="margin-bottom: 2rem;">
+<style>
+    /* Override khusus halaman pengaturan profil: Ubah menjadi scroll body normal agar background putih tidak pernah terpotong */
+    html, body {
+        height: auto !important;
+        overflow-y: auto !important;
+    }
+    .dashboard-layout {
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow: visible !important;
+    }
+    .dash-sidebar {
+        height: auto !important;
+        min-height: 100vh !important;
+    }
+    .main-wrapper {
+        background: var(--dash-sidebar) !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow-y: visible !important;
+    }
+    .dash-topbar {
+        background: var(--dash-sidebar) !important;
+    }
+    .main-content {
+        background: var(--dash-sidebar) !important;
+        height: auto !important;
+        min-height: calc(100vh - 80px) !important;
+        padding: 0 !important;
+        display: block !important;
+    }
+    .dash-left {
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 2rem 4rem 2rem;
+    }
+</style>
+
+<div class="dash-left">
+    <div class="section-header" style="margin-bottom: 2rem; flex-shrink: 0;">
         <div>
             <h1 style="font-size: 1.8rem; color: var(--dash-text); margin-bottom: 0.5rem;">Pengaturan Profil</h1>
             <p style="color: var(--dash-text-muted);">Kelola informasi pribadi dan pengaturan akun Anda.</p>
@@ -108,18 +110,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <?php if ($success_msg): ?>
-        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; color: #10b981; padding: 1rem; border-radius: 12px; margin-bottom: 2rem; font-weight: 600;">
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; color: #10b981; padding: 1rem; border-radius: 12px; margin-bottom: 2rem; font-weight: 600; flex-shrink: 0;">
             <?php echo $success_msg; ?>
         </div>
     <?php endif; ?>
     
     <?php if ($error_msg): ?>
-        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #ef4444; padding: 1rem; border-radius: 12px; margin-bottom: 2rem; font-weight: 600;">
+        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #ef4444; padding: 1rem; border-radius: 12px; margin-bottom: 2rem; font-weight: 600; flex-shrink: 0;">
             <?php echo $error_msg; ?>
         </div>
     <?php endif; ?>
 
-    <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; padding: 2rem;">
+    <div>
         <form method="POST" action="">
             
             <div style="display:flex; align-items:center; gap: 2rem; margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid var(--dash-border);">
@@ -169,72 +171,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="password" name="password" placeholder="Biarkan kosong jika tidak ingin mengubah password" style="width: 100%; padding: 0.75rem; border: 1px solid var(--dash-border); border-radius: 8px; background: var(--dash-bg); color: var(--dash-text); font-family: inherit;">
             </div>
 
-            <div style="margin-bottom: 2.5rem; padding: 2rem; background:linear-gradient(135deg, rgba(67, 97, 238, 0.05) 0%, rgba(67, 97, 238, 0.15) 100%); border-radius: 16px; border: 1px solid rgba(67, 97, 238, 0.2);">
-                <h3 style="margin-top:0; color:var(--dash-primary); display:flex; align-items:center; gap:8px;">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
-                    Kustomisasi Profil (Gamifikasi)
-                </h3>
-                <p style="font-size:0.85rem; color:var(--dash-text-muted); margin-bottom:1.5rem;">Selesaikan course dan dapatkan lebih banyak Badge untuk membuka fitur eksklusif ini! (Badge Anda saat ini: <strong><?php echo $user['total_badges']; ?></strong>)</p>
-                
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                    <div style="<?php echo ($user['total_badges'] < 3 && $_SESSION['user_role'] !== 'admin') ? 'opacity:0.5; pointer-events:none;' : ''; ?>">
-                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--dash-text);">
-                            Warna Border Profil
-                            <?php if($user['total_badges'] < 3 && $_SESSION['user_role'] !== 'admin'): ?> <span style="color:#ef4444; font-size:0.7rem;">(Butuh 3 Badge)</span> <?php else: ?> <span style="color:#10b981; font-size:0.7rem;">(Unlocked!)</span> <?php endif; ?>
-                        </label>
-                        <input type="color" name="profile_color" value="<?php echo htmlspecialchars($user['profile_color'] ?? '#4361ee'); ?>" style="width: 100%; height:45px; padding: 0.25rem; border: 1px solid var(--dash-border); border-radius: 8px; background: var(--dash-bg); cursor:pointer;">
-                    </div>
-                    
-                    <div style="<?php echo ($user['total_badges'] < 5 && $_SESSION['user_role'] !== 'admin') ? 'opacity:0.5; pointer-events:none;' : ''; ?>">
-                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--dash-text);">
-                            Gelar Profil Khusus
-                            <?php if($user['total_badges'] < 5 && $_SESSION['user_role'] !== 'admin'): ?> <span style="color:#ef4444; font-size:0.7rem;">(Butuh 5 Badge)</span> <?php else: ?> <span style="color:#10b981; font-size:0.7rem;">(Unlocked!)</span> <?php endif; ?>
-                        </label>
-                        <input type="text" name="profile_title" value="<?php echo htmlspecialchars($user['profile_title'] ?? 'Novice Coder'); ?>" placeholder="Contoh: Algo Master" style="width: 100%; padding: 0.75rem; border: 1px solid var(--dash-border); border-radius: 8px; background: var(--dash-bg); color: var(--dash-text); font-family: inherit;">
-                    </div>
-                </div>
-
-                <div style="margin-top:2rem; padding-top:1.5rem; border-top:1px dashed rgba(67, 97, 238, 0.3); <?php echo ($user['total_badges'] < 10 && $_SESSION['user_role'] !== 'admin') ? 'opacity:0.5; pointer-events:none;' : ''; ?>">
-                    <label style="display: block; margin-bottom: 0.75rem; font-size: 0.85rem; font-weight: 600; color: var(--dash-text);">
-                        Banner Animasi Profil
-                        <?php if($user['total_badges'] < 10 && $_SESSION['user_role'] !== 'admin'): ?> <span style="color:#ef4444; font-size:0.7rem;">(Butuh 10 Badge)</span> <?php else: ?> <span style="color:#10b981; font-size:0.7rem;">(Unlocked!)</span> <?php endif; ?>
-                    </label>
-                    <p style="font-size:0.8rem; color:var(--dash-text-muted); margin-bottom:1rem;">Pilih banner animasi yang akan tampil di kartu profilmu saat dilihat orang lain.</p>
-
-                    <?php
-                        $banner_options = ['' => ['label' => 'Tanpa Banner', 'poster' => null]];
-                        $available_banners = glob('src/img/profile-banner-*.gif') ?: [];
-                        sort($available_banners);
-                        foreach ($available_banners as $file) {
-                            $filename = basename($file);
-                            $banner_options[$filename] = ['label' => 'Banner ' . count($banner_options), 'poster' => 'src/img/' . $filename];
-                        }
-                        foreach ($LOTTIE_BANNERS as $url => $meta) {
-                            $banner_options[$url] = ['label' => $meta['label'], 'poster' => $meta['poster']];
-                        }
-
-                        $current_banner = $user['banner_gif'] ?? '';
-                    ?>
-                    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
-                        <?php foreach ($banner_options as $file => $meta): ?>
-                            <label style="cursor:pointer; display:block;">
-                                <input type="radio" name="banner_gif" value="<?php echo htmlspecialchars($file); ?>" <?php echo ($current_banner === $file) ? 'checked' : ''; ?> style="position:absolute; opacity:0;" onchange="document.querySelectorAll('.banner-option').forEach(el => el.style.borderColor = 'var(--dash-border)'); this.nextElementSibling.style.borderColor = 'var(--dash-primary)';">
-                                <div class="banner-option" style="border: 2px solid <?php echo ($current_banner === $file) ? 'var(--dash-primary)' : 'var(--dash-border)'; ?>; border-radius: 10px; overflow:hidden; background:var(--dash-bg);">
-                                    <?php if ($file === ''): ?>
-                                        <div style="height:60px; display:flex; align-items:center; justify-content:center; color:var(--dash-text-muted); font-size:0.7rem;">Tanpa Banner</div>
-                                    <?php else: ?>
-                                        <img src="<?php echo htmlspecialchars($meta['poster']); ?>" alt="<?php echo htmlspecialchars($meta['label']); ?>" style="width:100%; height:60px; object-fit:cover; display:block;">
-                                    <?php endif; ?>
-                                    <div style="text-align:center; font-size:0.7rem; padding:4px; color:var(--dash-text); background:rgba(0,0,0,0.15);"><?php echo htmlspecialchars($meta['label']); ?></div>
-                                </div>
-                            </label>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-            </div>
-
-            <div style="display:flex; justify-content: flex-end; gap: 1rem;">
-                <button type="submit" style="background: var(--dash-primary); color: white; border: none; padding: 0.75rem 2rem; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: background 0.2s;">
+            <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                <button type="submit" style="padding: 0.75rem 2rem; background: var(--dash-primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.3s;">
                     Simpan Perubahan
                 </button>
             </div>
