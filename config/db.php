@@ -18,6 +18,29 @@ function ensureDatabaseBootstrap(PDO $pdo): void {
         if (!$has_weekly_target) {
             $pdo->exec("ALTER TABLE users ADD COLUMN weekly_target INT NOT NULL DEFAULT 600 AFTER profile_color");
         }
+        
+        $has_card_border = $pdo->query("SHOW COLUMNS FROM users LIKE 'card_border_id'")->fetch();
+        if (!$has_card_border) {
+            $pdo->exec("ALTER TABLE users ADD COLUMN card_border_id INT DEFAULT NULL AFTER profile_effect_id");
+            $pdo->exec("ALTER TABLE users ADD CONSTRAINT fk_user_card_border FOREIGN KEY (card_border_id) REFERENCES gamification_perks(id) ON DELETE SET NULL");
+        }
+
+        $has_premium_perks = $pdo->query("SHOW COLUMNS FROM users LIKE 'card_background_id'")->fetch();
+        if (!$has_premium_perks) {
+            $pdo->exec("ALTER TABLE users 
+                        ADD COLUMN card_background_id INT DEFAULT NULL AFTER card_border_id,
+                        ADD COLUMN cursor_effect_id INT DEFAULT NULL AFTER card_background_id,
+                        ADD COLUMN badge_effect_id INT DEFAULT NULL AFTER cursor_effect_id,
+                        ADD COLUMN entrance_anim_id INT DEFAULT NULL AFTER badge_effect_id");
+            
+            $pdo->exec("ALTER TABLE users ADD CONSTRAINT fk_user_card_bg FOREIGN KEY (card_background_id) REFERENCES gamification_perks(id) ON DELETE SET NULL");
+            $pdo->exec("ALTER TABLE users ADD CONSTRAINT fk_user_cursor FOREIGN KEY (cursor_effect_id) REFERENCES gamification_perks(id) ON DELETE SET NULL");
+            $pdo->exec("ALTER TABLE users ADD CONSTRAINT fk_user_badge_eff FOREIGN KEY (badge_effect_id) REFERENCES gamification_perks(id) ON DELETE SET NULL");
+            $pdo->exec("ALTER TABLE users ADD CONSTRAINT fk_user_entrance FOREIGN KEY (entrance_anim_id) REFERENCES gamification_perks(id) ON DELETE SET NULL");
+
+            // Update enum
+            $pdo->exec("ALTER TABLE gamification_perks MODIFY COLUMN type ENUM('avatar_frame', 'name_effect', 'profile_effect', 'banner_gif', 'card_border', 'card_background', 'cursor_effect', 'badge_effect', 'entrance_anim') NOT NULL");
+        }
     } catch (PDOException $e) {
     }
 

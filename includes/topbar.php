@@ -24,12 +24,16 @@ if (isset($_SESSION['user_id'])) {
     $stmt_u->execute([$_SESSION['user_id']]);
     $u_data = $stmt_u->fetch();
     
-    if ($u_data && $_SESSION['user_role'] !== 'admin') {
-        $allowed = getUserAllowedCategories($u_data);
-        if (!empty($allowed)) {
-            $user_class = end($allowed); // Get highest level allowed (e.g. if SD, SMP -> SMP)
-        } else {
-            $user_class = 'Akses Terbatas';
+    if ($u_data) {
+        $user_picture = !empty($u_data['picture']) ? htmlspecialchars($u_data['picture']) : $user_picture;
+        
+        if ($_SESSION['user_role'] !== 'admin') {
+            $allowed = getUserAllowedCategories($u_data);
+            if (!empty($allowed)) {
+                $user_class = end($allowed); // Get highest level allowed (e.g. if SD, SMP -> SMP)
+            } else {
+                $user_class = 'Akses Terbatas';
+            }
         }
     }
 
@@ -101,9 +105,13 @@ if (in_array($current_page, ['dashboard', 'course_list', 'sertifikat', 'course_d
 
         <div class="profile-dropdown-wrapper" style="position:relative; display:flex; align-items:center;">
             <div class="dash-profile" style="cursor:pointer; transition:background 0.2s;" onclick="document.getElementById('profile-dropdown').classList.toggle('show')">
-                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #22c55e, #16a34a); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.2);">
-                    <?php echo $user_initials; ?>
-                </div>
+                <?php if ($user_picture): ?>
+                    <img src="<?php echo $user_picture; ?>" alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; object-fit:cover; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.2);">
+                <?php else: ?>
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #22c55e, #16a34a); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.2);">
+                        <?php echo $user_initials; ?>
+                    </div>
+                <?php endif; ?>
                 <div class="dash-profile-info">
                     <span class="dash-profile-name" style="color:var(--dash-text);"><?php echo explode(' ', $user_name_display)[0]; ?></span>
                     <span class="dash-profile-role" style="color:var(--dash-text-muted);"><?php echo $user_class; ?></span>
@@ -115,6 +123,10 @@ if (in_array($current_page, ['dashboard', 'course_list', 'sertifikat', 'course_d
                 <a href="index.php?page=user_settings" style="display:flex; align-items:center; gap:10px; padding:0.75rem 1rem; color:var(--dash-text); text-decoration:none; border-radius:8px; font-size:0.9rem; font-weight:500; transition:background 0.2s;" onmouseover="this.style.background='var(--dash-bg-hover)'" onmouseout="this.style.background='transparent'">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" style="color:var(--dash-text-muted);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     Pengaturan Profil
+                </a>
+                <a href="index.php?page=user_customization" style="display:flex; align-items:center; gap:10px; padding:0.75rem 1rem; color:var(--dash-text); text-decoration:none; border-radius:8px; font-size:0.9rem; font-weight:500; transition:background 0.2s;" onmouseover="this.style.background='var(--dash-bg-hover)'" onmouseout="this.style.background='transparent'">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" style="color:var(--dash-text-muted);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                    Kustomisasi Profil
                 </a>
                 <div style="height:1px; background:var(--dash-border); margin:0.5rem 0;"></div>
                 <a href="logout.php" style="display:flex; align-items:center; gap:10px; padding:0.75rem 1rem; color:#ef4444; text-decoration:none; border-radius:8px; font-size:0.9rem; font-weight:500; transition:background 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'" onmouseout="this.style.background='transparent'">
