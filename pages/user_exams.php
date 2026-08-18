@@ -27,7 +27,7 @@ $exams = $stmt->fetchAll();
             <p style="color: var(--dash-text-muted);">Saat ini belum ada soal ujian yang tersedia dari sistem.</p>
         </div>
     <?php else: ?>
-        <div class="courses-grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+        <div class="courses-grid" style="grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 1.5rem;">
             <?php foreach ($exams as $e): ?>
             <a href="index.php?page=course_exam&id=<?php echo $e['id']; ?>" style="text-decoration:none; color:inherit; display:block;">
                 <div class="course-card" style="transition: transform 0.2s, box-shadow 0.2s; height: 100%; display: flex; flex-direction: column; border-radius:16px; overflow:hidden; background:var(--dash-sidebar); border:1px solid var(--dash-border);">

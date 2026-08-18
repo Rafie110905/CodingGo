@@ -61,7 +61,7 @@ $exams = $stmt_ex->fetchAll();
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 400px; gap: 2rem;">
+    <div class="dash-grid-fixed-right" style="display: grid;  gap: 2rem;">
         <!-- Daftar Ujian -->
         <div>
             <?php if (count($exams) === 0): ?>

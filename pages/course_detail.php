@@ -45,6 +45,35 @@ if ($is_logged_in) {
     $stmt_prog->execute([$_SESSION['user_id']]);
     $completed_materials = $stmt_prog->fetchAll(PDO::FETCH_COLUMN);
     
+    // Check if all materials are completed
+    $is_all_materials_completed = true;
+    if (count($materials) == 0) {
+        $is_all_materials_completed = false;
+    } else {
+        foreach ($materials as $m) {
+            if (!in_array($m['id'], $completed_materials)) {
+                $is_all_materials_completed = false;
+                break;
+            }
+        }
+    }
+
+    // Check if all exams are passed
+    $is_all_exams_passed = false;
+    if (count($exams) > 0) {
+        $stmt_exam_chk = $pdo->prepare("
+            SELECT COUNT(DISTINCT exam_id) FROM exam_results 
+            WHERE user_id = ? AND passed = 1 AND exam_id IN (SELECT id FROM exams WHERE course_id = ?)
+        ");
+        $stmt_exam_chk->execute([$_SESSION['user_id'], $course_id]);
+        $passed_count = $stmt_exam_chk->fetchColumn();
+        if ($passed_count >= count($exams)) {
+            $is_all_exams_passed = true;
+        }
+    } else {
+        $is_all_exams_passed = $is_all_materials_completed;
+    }
+    
     // Cek Akses
     $stmt_u = $pdo->prepare("SELECT * FROM users WHERE id = ?");
     $stmt_u->execute([$_SESSION['user_id']]);
@@ -172,9 +201,19 @@ $reviews = $stmt_reviews->fetchAll();
                 <?php if (!$has_access): ?>
                     <button disabled style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px dashed #ef4444; padding: 1rem 2rem; border-radius: 12px; font-weight: 600; font-size: 1.1rem; cursor: not-allowed;">Akses Terkunci (Batas Umur)</button>
                 <?php elseif (count($materials) > 0): ?>
-                    <a href="index.php?page=course_learn&id=<?php echo $materials[0]['id']; ?>" style="background: <?php echo $theme_color; ?>; color: white; border: none; padding: 1rem 2rem; border-radius: 12px; font-weight: 600; font-size: 1.1rem; text-decoration: none; display: inline-block; box-shadow: 0 4px 15px <?php echo $theme_color; ?>60; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
-                        Mulai Petualangan Belajar &rarr;
-                    </a>
+                    <?php if ($is_all_exams_passed): ?>
+                        <a href="javascript:void(0)" style="background: <?php echo $theme_color; ?>; color: white; border: none; padding: 1rem 2rem; border-radius: 12px; font-weight: 600; font-size: 1.1rem; text-decoration: none; display: inline-block; box-shadow: 0 4px 15px <?php echo $theme_color; ?>60; cursor: default;">
+                            Kelas terselesaikan &rarr;
+                        </a>
+                    <?php elseif ($is_all_materials_completed && count($exams) > 0): ?>
+                        <a href="index.php?page=course_exam&id=<?php echo $exams[0]['id']; ?>" style="background: <?php echo $theme_color; ?>; color: white; border: none; padding: 1rem 2rem; border-radius: 12px; font-weight: 600; font-size: 1.1rem; text-decoration: none; display: inline-block; box-shadow: 0 4px 15px <?php echo $theme_color; ?>60; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+                            Mulai Ujian Akhir &rarr;
+                        </a>
+                    <?php else: ?>
+                        <a href="index.php?page=course_learn&id=<?php echo $materials[0]['id']; ?>" style="background: <?php echo $theme_color; ?>; color: white; border: none; padding: 1rem 2rem; border-radius: 12px; font-weight: 600; font-size: 1.1rem; text-decoration: none; display: inline-block; box-shadow: 0 4px 15px <?php echo $theme_color; ?>60; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+                            Mulai Petualangan Belajar &rarr;
+                        </a>
+                    <?php endif; ?>
                 <?php else: ?>
                     <button disabled style="background: var(--bg-hover); color: var(--text-muted); border: 1px solid var(--border-color); padding: 1rem 2rem; border-radius: 12px; font-weight: 600; font-size: 1.1rem; cursor: not-allowed;">Materi Belum Tersedia</button>
                 <?php endif; ?>
@@ -195,7 +234,7 @@ $reviews = $stmt_reviews->fetchAll();
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+    <div class="dash-grid-sidebar" style="display: grid;  gap: 2rem;">
         <!-- Silabus -->
         <div>
             <h2 style="font-size: 1.5rem; color: var(--text); margin-bottom: 1.5rem;">Silabus Kelas (Materi Hunting)</h2>

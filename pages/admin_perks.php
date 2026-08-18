@@ -73,7 +73,7 @@ if (isset($_GET['edit_id'])) {
     <p class="dash-subtitle">Atur bingkai avatar, efek nama, dan kustomisasi kosmetik lainnya yang bisa di-unlock user.</p>
 </div>
 
-<div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 400px; gap: 2rem; align-items: start;">
+<div class="dash-grid-fixed-right" style="grid-column: 1 / -1; display: grid;  gap: 2rem; align-items: start;">
     
     <!-- Kiri: Live Preview & Table -->
     <div style="display: flex; flex-direction: column; gap: 2rem;">

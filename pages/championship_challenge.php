@@ -70,6 +70,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$is_completed && $is_active) {
             $stmt_upd_user = $pdo->prepare("UPDATE users SET xp_points = xp_points + ? WHERE id = ?");
             $stmt_upd_user->execute([$xp_reward, $user_id]);
             
+            // 4. Kirim Notifikasi
+            $notif_title = "Tantangan Selesai!";
+            $notif_msg = "Hebat! Anda berhasil menyelesaikan tantangan '" . $challenge['title'] . "' dan mendapatkan +" . $xp_reward . " XP Turnamen.";
+            $notif_link = "index.php?page=championship_detail&id=" . $championship_id;
+            $pdo->prepare("INSERT INTO user_notifications (user_id, type, title, message, link_url) VALUES (?, 'system', ?, ?, ?)")->execute([$user_id, $notif_title, $notif_msg, $notif_link]);
+            
             $pdo->commit();
             
             $is_completed = true;
@@ -91,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$is_completed && $is_active) {
         <a href="index.php?page=championship_detail&id=<?php echo $championship_id; ?>" style="color:var(--text-muted); font-size:0.9rem; text-decoration:none;">&larr; Kembali ke Dashboard Turnamen</a>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 350px; gap: 2rem;">
+    <div class="dash-grid-fixed-right" style="display: grid;  gap: 2rem;">
         
         <!-- Kolom Kiri: Soal -->
         <div style="background: var(--bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 2rem;">

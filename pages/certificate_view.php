@@ -9,6 +9,15 @@ $stmt = $pdo->prepare("SELECT cert.*, c.title as course_title, c.category, u.nam
                        WHERE cert.certificate_code = ?");
 $stmt->execute([$code]);
 $cert = $stmt->fetch();
+
+if ($cert) {
+    // Format tanggal Indonesia
+    $hari = ['Monday'=>'Senin','Tuesday'=>'Selasa','Wednesday'=>'Rabu','Thursday'=>'Kamis','Friday'=>'Jumat','Saturday'=>'Sabtu','Sunday'=>'Minggu'];
+    $bulan = ['January'=>'Januari','February'=>'Februari','March'=>'Maret','April'=>'April','May'=>'Mei','June'=>'Juni','July'=>'Juli','August'=>'Agustus','September'=>'September','October'=>'Oktober','November'=>'November','December'=>'Desember'];
+    $tanggalFormatted = $hari[date('l', strtotime($cert['issued_at']))] . ', ' . date('d', strtotime($cert['issued_at'])) . ' ' . $bulan[date('F', strtotime($cert['issued_at']))] . ' ' . date('Y', strtotime($cert['issued_at']));
+
+    $jenjangDisplay = 'Jenjang ' . ($cert['category'] ?? 'Umum');
+}
 ?>
 <div id="certificate-page-root" style="min-height: 80vh; display:flex; align-items:center; justify-content:center; padding: 2rem 1rem; background: var(--bg-main, #f8fafc);">
     <?php if (!$cert): ?>
@@ -18,55 +27,45 @@ $cert = $stmt->fetch();
         </div>
     <?php else: ?>
         <div class="cert-wrap">
-            <div class="cert-box" id="cert-box">
-                <div class="brand-mark">
-                    <span>{CG}</span>
-                </div>
-                <div class="brand-text">CodingGo</div>
+            <div class="certificate" id="cert-box">
 
-                <h1 class="cert-title">
-                    SERTIFIKAT
-                    <span>PENGHARGAAN</span>
-                </h1>
+                <!-- NOMOR SERTIFIKAT -->
+                <div class="cert-number">No. <?php echo htmlspecialchars($cert['certificate_code']); ?></div>
 
-                <div class="cert-subtitle">Diberikan Kepada :</div>
-                <div class="cert-name"><?php echo htmlspecialchars($cert['user_name']); ?></div>
+                <!-- NAMA -->
+                <div class="recipient-name"><?php echo htmlspecialchars($cert['user_name']); ?></div>
 
-                <div class="gold-divider">
-                    <span class="line-left"></span>
-                    <span class="star">✦</span>
-                    <span class="star">✦</span>
-                    <span class="star">✦</span>
-                    <span class="line-right"></span>
-                </div>
+                <!-- KELAS -->
+                <div class="class-name"><?php echo htmlspecialchars($cert['course_title']); ?></div>
 
-                <p class="cert-body">
-                    Atas keberhasilan menyelesaikan seluruh materi dan lulus ujian akhir pada kelas
-                    <strong><?php echo htmlspecialchars($cert['course_title']); ?></strong>
-                </p>
+                <!-- JENJANG -->
+                <div class="field-jenjang"><?php echo htmlspecialchars($jenjangDisplay); ?></div>
 
-                <div class="signature-row">
-                    <div class="sig-box">
-                        <span>Backend Developer</span>
-                        <strong>Rafi</strong>
-                    </div>
-                    <div class="sig-box">
-                        <span>Fullstack Developer</span>
-                        <strong>Dedy Nurohim</strong>
-                    </div>
-                    <div class="sig-box">
-                        <span>UI/UX Designer</span>
-                        <strong>Rian Renaldy</strong>
-                    </div>
-                </div>
+                <!-- TANGGAL -->
+                <div class="field-tanggal"><?php echo $tanggalFormatted; ?></div>
+
             </div>
         </div>
 
         <div class="no-print" style="text-align:center; margin-top:1.5rem;">
-            <button onclick="window.print()" style="background:#4361ee; color:#fff; border:none; padding:0.85rem 2rem; border-radius:999px; font-weight:600; cursor:pointer;">Cetak / Simpan sebagai PDF</button>
+            <button onclick="window.print()" style="background:#4361ee; color:#fff; border:none; padding:0.85rem 2rem; border-radius:999px; font-weight:600; cursor:pointer;">🖨️ Cetak / Simpan sebagai PDF</button>
         </div>
 
         <style>
+            @import url('https://fonts.googleapis.com/css2?family=Pinyon+Script&display=swap');
+
+            /*
+             * Font "The Youngest" dipakai untuk No. Sertifikat, Jenjang & Tanggal.
+             * Sesuaikan path src di bawah dengan lokasi file font asli kamu.
+             * Selama file font belum ada, otomatis fallback ke Georgia/serif.
+             */
+            @font-face {
+                font-family: 'The Youngest';
+                src: url('src/fonts/TheYoungest.woff2') format('woff2'),
+                     url('src/fonts/TheYoungest.otf') format('opentype');
+                font-display: swap;
+            }
+
             .cert-wrap {
                 position: relative;
                 width: min(100%, 900px);
@@ -74,263 +73,177 @@ $cert = $stmt->fetch();
                 padding: 0.75rem;
             }
 
-            .cert-box {
+            /* ===== SERTIFIKAT DENGAN BACKGROUND GAMBAR (FRAME) ===== */
+            /* Elemen statis (judul SERTIFIKAT, PENGHARGAAN, logo, "Diberikan
+               Kepada :", deskripsi, garis ornamen, tanda tangan) sudah menyatu
+               di dalam sertifikat-frame.png. Di sini hanya 5 teks dinamis yang
+               ditaruh otomatis: No. Sertifikat, Nama, Kelas, Jenjang, Tanggal. */
+            .certificate {
                 position: relative;
-                width: min(100%, 760px);
-                min-height: 640px;
-                margin: 0 auto;
-                background: rgba(255,255,255,0.9);
-                border: 4px solid #d7b057;
-                box-shadow: inset 0 0 0 2px rgba(13, 52, 117, 0.18), 0 18px 40px rgba(15, 23, 42, 0.08);
-                overflow: hidden;
-                padding: 2.25rem 2.25rem 1.8rem;
-                text-align: center;
-                z-index: 1;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .cert-box::before,
-            .cert-box::after {
-                content: "";
-                position: absolute;
-                inset: 0;
-                pointer-events: none;
-                z-index: 0;
-            }
-
-            .cert-box::before {
-                background:
-                    radial-gradient(circle at 17% 14%, rgba(0,0,0,0.04) 0 18%, transparent 18.5%),
-                    radial-gradient(circle at 72% 18%, rgba(0,0,0,0.04) 0 17%, transparent 17.5%),
-                    linear-gradient(135deg, rgba(33,92,178,0.12), rgba(98,149,255,0.04));
-                opacity: 0.8;
-            }
-
-            .cert-box::after {
-                inset: 10px;
-                border: 1px solid rgba(33, 92, 178, 0.12);
-            }
-
-            .brand-mark,
-            .brand-text,
-            .cert-title,
-            .cert-subtitle,
-            .cert-name,
-            .gold-divider,
-            .cert-body,
-            .signature-row {
-                position: relative;
-                z-index: 1;
-            }
-
-            .brand-mark {
-                position: absolute;
-                left: 2.4rem;
-                top: 2.1rem;
-                width: 70px;
-                height: 70px;
+                width: 100%;
+                aspect-ratio: 1.414 / 1;
+                background-image: url('src/img/sertifikat-frame.png');
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
                 border-radius: 12px;
-                background: linear-gradient(135deg, #3a7ae5, #2f6dca);
-                box-shadow: 0 10px 20px rgba(37,99,235,0.2);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: 800;
-                color: #fff;
-                font-size: 0.85rem;
-                letter-spacing: -0.04em;
-                border: 1px solid rgba(255,255,255,0.5);
+                box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+                overflow: hidden;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                /* PENTING: jadikan lebar .certificate sendiri sebagai acuan
+                   skala (Container Query Width / cqw). Dengan ini teks di
+                   dalamnya SELALU proporsional terhadap frame — baik saat di
+                   layar sempit, layar lebar, maupun saat dicetak (di mana
+                   lebar kotak berubah jadi seukuran kertas A4). Ini yang
+                   memperbaiki bug "tulisan mengecil pas print": px tetap
+                   tidak ikut membesar saat kotak membesar, cqw ikut. */
+                container-type: inline-size;
             }
 
-            .brand-text {
+            /* ===== NOMOR SERTIFIKAT ===== */
+            .cert-number {
                 position: absolute;
-                left: 2.7rem;
-                top: 6.15rem;
-                font-size: 0.88rem;
-                color: #1d4ed8;
-                font-family: "Segoe UI", sans-serif;
-                font-weight: 600;
-                letter-spacing: 0.02em;
-            }
-
-            .cert-title {
-                margin: 0;
-                font-size: clamp(2rem, 2.8vw, 3.5rem);
-                line-height: 1.05;
-                letter-spacing: 0.06em;
-                font-weight: 700;
-                color: #1f5fa8;
-                font-family: Georgia, "Times New Roman", serif;
-                text-transform: uppercase;
-                width: 100%;
-            }
-
-            .cert-title span {
-                display: block;
-                margin-top: 0.15rem;
-                font-size: clamp(1.2rem, 1.9vw, 2.2rem);
-                letter-spacing: 0.08em;
-            }
-
-            .cert-subtitle {
-                margin-top: 1.4rem;
-                font-size: clamp(1.05rem, 1.4vw, 1.7rem);
-                color: rgba(15, 23, 42, 0.82);
-                font-style: italic;
-                font-family: Georgia, "Times New Roman", serif;
-            }
-
-            .cert-name {
-                margin-top: 0.5rem;
-                font-size: clamp(2rem, 2.8vw, 3rem);
-                font-weight: 700;
-                color: rgba(15,23,42,0.95);
-                letter-spacing: 0.03em;
-                font-family: Georgia, "Times New Roman", serif;
-                padding-bottom: 0.2rem;
-            }
-
-            .gold-divider {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 0.7rem;
-                margin: 1.3rem auto 1.4rem;
-                width: min(100%, 420px);
-            }
-
-            .line-left,
-            .line-right {
-                flex: 1;
-                height: 2px;
-                background: linear-gradient(90deg, rgba(212,174,82,0.2), rgba(212,174,82,0.9), rgba(212,174,82,0.2));
-            }
-
-            .star {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                width: 22px;
-                height: 22px;
-                color: #d4a74d;
-                font-size: 1.1rem;
-                line-height: 1;
-            }
-
-            .cert-body {
-                max-width: 640px;
-                margin: 0 auto;
-                font-size: clamp(1rem, 1.35vw, 1.45rem);
-                color: rgba(15, 23, 42, 0.82);
-                line-height: 1.7;
-                font-family: Georgia, "Times New Roman", serif;
-            }
-
-            .cert-body strong {
-                display: block;
-                margin-top: 0.2rem;
-                color: rgba(15,23,42,1);
-                font-size: 1.05em;
-            }
-
-            .signature-row {
-                display: grid;
-                grid-template-columns: repeat(3, minmax(120px, 1fr));
-                gap: 1.2rem;
-                width: min(100%, 560px);
-                margin: 2rem auto 0;
-            }
-
-            .sig-box {
-                width: 100%;
+                top: 30.8%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 90%;
+                font-family: 'The Youngest', 'Georgia', 'Times New Roman', serif;
+                font-size: 15px; /* fallback browser lama tanpa cqw */
+                font-size: 1.667cqw;
+                letter-spacing: 1px;
+                color: #1a335f;
                 text-align: center;
-                color: rgba(15, 23, 42, 0.8);
-                font-family: Georgia, "Times New Roman", serif;
-                margin-bottom: 0.2rem;
+                white-space: nowrap;
+                z-index: 2;
             }
 
-            .sig-box span {
-                display: block;
-                font-size: 0.95rem;
-                margin-bottom: 0.1rem;
+            /* ===== NAMA ===== */
+            .recipient-name {
+                position: absolute;
+                font-weight: bold;
+                top: 43.3%;
+                left: 50%;
+                    /* outline sangat tipis */
+            text-shadow:
+                0.3px 0 #000,
+                -0.3px 0 #000,
+                0 0.3px #000,
+                0 -0.3px #000;
+                transform: translate(-50%, -50%);
+                width: 92%;
+                font-family: 'Pinyon Script', cursive;
+                font-size: 50.9px; /* fallback browser lama tanpa cqw */
+                font-size: 5.656cqw;
+                color: #c9a227;
+                line-height: 1.1;
+                text-align: center;
+                letter-spacing: 1px;
+                word-break: break-word;
+                z-index: 2;
             }
 
-            .sig-box strong {
-                display: block;
-                font-size: 1rem;
-                color: rgba(15, 23, 42, 0.96);
-                font-weight: 700;
+            /* ===== KELAS ===== */
+            .class-name {
+                font-weight: bold;
+                position: absolute;
+                top: 58.6%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 88%;
+                font-family: 'Pinyon Script', cursive;
+                font-size: 28px; /* fallback browser lama tanpa cqw */
+                font-size: 3.111cqw;
+                color: #16305c;
+                text-align: center;
+                letter-spacing: 0.5px;
+                line-height: 1.1;
+                z-index: 2;
             }
 
-            @media (max-width: 768px) {
-                .cert-box {
-                    min-height: auto;
-                    padding: 5.5rem 1.25rem 1.6rem;
-                }
-
-                .brand-mark {
-                    width: 56px;
-                    height: 56px;
-                    left: 1.1rem;
-                    top: 1.1rem;
-                    font-size: 0.72rem;
-                }
-
-                .brand-text {
-                    left: 1.2rem;
-                    top: 4.9rem;
-                    font-size: 0.72rem;
-                }
-
-                .signature-row {
-                    grid-template-columns: repeat(3, minmax(100px, 1fr));
-                    gap: 0.8rem;
-                }
+            /* ===== JENJANG ===== */
+            .field-jenjang {
+                position: absolute;
+                top: 64.1%;
+                left: 50.0%;
+                transform: translate(-50%, -50%);
+                font-family: 'The Youngest', 'Georgia', 'Times New Roman', serif;
+                font-size: 15px; /* fallback browser lama tanpa cqw */
+                font-size: 1.667cqw;
+                color: #1a335f;
+                white-space: nowrap;
+                z-index: 2;
             }
 
+            /* ===== TANGGAL ===== */
+            .field-tanggal {
+                position: absolute;
+                top: 64%;
+                left: 72%;
+                transform: translate(-50%, -50%);
+                font-family: 'The Youngest', 'Georgia', 'Times New Roman', serif;
+                font-size: 15px; /* fallback browser lama tanpa cqw */
+                font-size: 1.667cqw;
+                color: #1a335f;
+                white-space: nowrap;
+                z-index: 2;
+            }
+
+            /* Catatan: breakpoint font-size manual (max-width 768px/480px)
+               sudah tidak dipakai lagi — cqw di atas otomatis fluid mengikuti
+               lebar kotak .certificate di SEMUA ukuran layar, jadi tidak
+               perlu step manual lagi dan tidak akan konflik saat print. */
+
+            /* ===== CETAK / PDF ===== */
             @page {
-                size: A4 portrait;
-                margin: 8mm;
+                size: A4 landscape;
+                margin: 0;
             }
 
             @media print {
+                * {
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+
                 body > *:not(#certificate-page-root) {
                     display: none !important;
                 }
 
                 .no-print { display: none !important; }
+
                 html, body {
                     margin: 0 !important;
                     padding: 0 !important;
                     background: #fff !important;
-                    -webkit-print-color-adjust: exact;
-                    print-color-adjust: exact;
                 }
+
                 #certificate-page-root {
                     display: block !important;
                     min-height: auto !important;
                     padding: 0 !important;
                     background: #fff !important;
                 }
+
                 .cert-wrap {
                     width: 100%;
+                    max-width: none;
                     padding: 0;
                     margin: 0;
                     display: flex;
                     justify-content: center;
                     align-items: center;
                 }
-                .cert-box {
-                    width: 100%;
-                    max-width: 760px;
-                    min-height: 0;
-                    margin: 0 auto;
+
+                .certificate {
+                    width: 100vw;
+                    height: 100vh;
+                    max-width: 100%;
+                    aspect-ratio: 1.414 / 1;
                     box-shadow: none;
-                    padding: 1.5rem 1.25rem 1.25rem;
-                    aspect-ratio: 1.41 / 1;
+                    border-radius: 0;
+                    page-break-inside: avoid;
+                    page-break-after: avoid;
                 }
             }
         </style>

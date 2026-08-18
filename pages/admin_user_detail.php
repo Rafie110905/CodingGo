@@ -75,7 +75,7 @@ $exam_history = $stmt_er->fetchAll();
     
 
 
-    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 3rem;">
+    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); margin-bottom: 3rem;">
         <div class="stat-card">
             <div class="stat-val"><?php echo $active_courses; ?></div>
             <div class="stat-label">Kelas Berjalan</div>

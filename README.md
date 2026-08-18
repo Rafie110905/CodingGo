@@ -1,15 +1,16 @@
-#  CodingGo — Platform Belajar Coding yang Aman & Seru untuk Semua Kalangan
+# CodingGo — Platform Belajar Coding yang Aman & Seru untuk Semua Kalangan
 
 > Kompetisi Web Development — FTI Festival 2026 (PIXEL: Protection Information Exploration in the Digital Era)
 > Subtema: **Platform Pembelajaran Digital yang Aman dan Inovatif**
 
 ---
 
-##  Deskripsi Singkat
+## Deskripsi Singkat
 
 **CodingGo** adalah platform edukasi IT dasar yang bisa diakses **semua kalangan usia** — dari jenjang SD, SMP, SMA, hingga umum — untuk mengenal dunia teknologi digital secara bertahap. Materi mencakup literasi digital, logika komputer, dasar coding, hingga pengenalan Microsoft Office, dikemas dalam bentuk kursus interaktif berbasis web lengkap dengan sistem XP, badge, ujian, dan sertifikat.
 
 Cakupan materi meliputi:
+
 - Pengenalan dasar komputer & internet.
 - Literasi digital & keamanan siber dasar.
 - Logika komputasi (computational thinking).
@@ -17,31 +18,32 @@ Cakupan materi meliputi:
 - Pengenalan Microsoft Office.
 
 Yang membedakan CodingGo dari platform sejenis:
+
 - **100% berbasis web** — cukup dibuka lewat browser, tidak butuh instalasi aplikasi atau perangkat fisik tambahan (robot, kit elektronik, dsb).
 - **Materi berjenjang otomatis** — sistem mengunci akses materi berdasarkan kategori usia (SD/SMP/SMA/Umum), dihitung otomatis dari tanggal lahir pengguna saat mendaftar.
 - **Login aman** — mendukung login manual maupun **Google Sign-In (OAuth)** yang diverifikasi langsung ke endpoint resmi Google.
 - **Gamifikasi pembelajaran** — sistem XP, streak harian, badge pencapaian, leaderboard, dan sertifikat digital di setiap penyelesaian kursus.
 - **Forum diskusi (community)** — peserta bisa saling tanya-jawab dan membantu satu sama lain di dalam platform.
 
-##  Tim
+## Tim
 
 | Nama | Peran | GitHub |
-|---|---|---|
-| Moh Rafiie Nazar J | Project Lead / Project Manager | Rafie110905 |
-| Dedy Nurohim | Frontend Developer | dy-nm |
+| --- | --- | --- |
+| Moh Rafiie Nazar J | Backend Developer | Rafie110905 |
+| Dedy Nurohim | Fullstack Developer | dy-nm |
 | Rian Renaldy | UI/UX Desainer | al-renaldy073 |
 
-##  Teknologi (Tech Stack)
+## Teknologi (Tech Stack)
 
 | Layer | Teknologi |
-|---|---|
+| --- | --- |
 | Bahasa Utama | PHP (native, tanpa framework) |
 | Frontend | HTML5 + CSS3 (custom, per halaman: `auth.css`, `dashboard.css`, `index.css`) |
 | Database | MySQL (`codinggo_db`), dengan PDO sebagai lapisan koneksi |
 | Autentikasi | Login manual (session PHP) + Google Identity Services (OAuth 2.0) |
 | Server Lokal | XAMPP / Laragon / server PHP + MySQL sejenis |
 
-##  Struktur Folder
+## Struktur Folder
 
 ```
 CodingGo/
@@ -72,9 +74,10 @@ CodingGo/
 └── database.sql               # Skema database (versi alternatif/setup)
 ```
 
-##  Cara Menjalankan Website (Local Setup)
+## Cara Menjalankan Website (Local Setup)
 
 ### Prasyarat
+
 - PHP 8.x
 - MySQL / MariaDB
 - Web server lokal (disarankan **XAMPP** atau **Laragon**)
@@ -109,16 +112,16 @@ http://localhost/CodingGo/
 
 Untuk mengaktifkan fitur **Google Sign-In**, daftarkan **Client ID** di [Google Cloud Console](https://console.cloud.google.com/) lalu sesuaikan pada bagian script Google Identity Services di `login.php` / `register.php`.
 
-##  Akun Demo (untuk Juri)
+## Akun Demo (untuk Juri)
 
 | Role | Email | Password |
-|---|---|---|
-| Admin | adminpanitia@gmail.com | 12345678910 |
-| User | userpanitia@gmail.com | abcdefgh |
+| --- | --- | --- |
+| Admin | <adminpanitia@gmail.com> | 12345678910 |
+| User | <userpanitia@gmail.com> | abcdefgh |
 
 > Kredensial di atas hanya untuk keperluan demo/penilaian juri. Sesuaikan dengan akun yang benar-benar dibuat pada database kalian sebelum submit.
 
-##  Fitur Keamanan yang Diimplementasikan
+## Fitur Keamanan yang Diimplementasikan
 
 - **Prepared statement (PDO)** di seluruh query database — mencegah SQL Injection.
 - **Password hashing** menggunakan `password_hash()` bawaan PHP saat pengguna mengganti password.
@@ -127,14 +130,14 @@ Untuk mengaktifkan fitur **Google Sign-In**, daftarkan **Client ID** di [Google 
 - **Role-based access control** — pemisahan hak akses `user` dan `admin` di seluruh halaman panel admin.
 - **Session-based authentication** untuk menjaga status login pengguna.
 
-##  Dokumentasi Pendukung
+## Dokumentasi Pendukung
 
 Struktur database lengkap (kursus, materi, ujian, badge, sertifikat, forum) dapat dilihat di `codinggo_db.sql` / `database.sql`.
 
-##  Lisensi & Kredit
+## Lisensi & Kredit
 
 Proyek ini dibuat untuk keperluan Kompetisi Web Development FTI Festival 2026.
 
-##  Kontribusi Tim
+## Kontribusi Tim
 
 Panduan lengkap cara kolaborasi ada di [`CONTRIBUTING.md`](./CONTRIBUTING.md).

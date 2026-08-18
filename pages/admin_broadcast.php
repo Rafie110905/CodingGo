@@ -17,9 +17,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $message = trim($_POST['message']);
         $type = $_POST['type'];
         $display_mode = $_POST['display_mode'] ?? 'once';
-        
         $stmt = $pdo->prepare("INSERT INTO broadcasts (title, message, type, display_mode, is_active) VALUES (?, ?, ?, ?, 1)");
         $stmt->execute([$title, $message, $type, $display_mode]);
+        
+        // Notify all students
+        $notif_title = "Pesan Broadcast: " . $title;
+        $notif_msg = "Terdapat pesan pengumuman baru dari Admin.";
+        $notif_link = "index.php?page=dashboard";
+        $stmt_notif = $pdo->prepare("INSERT INTO user_notifications (user_id, type, title, message, link_url) SELECT id, 'system', ?, ?, ? FROM users WHERE role = 'student'");
+        $stmt_notif->execute([$notif_title, $notif_msg, $notif_link]);
+        
         $_SESSION['broadcast_msg'] = "Broadcast berhasil dikirim!";
     } elseif ($_POST['action'] === 'toggle') {
         $id = $_POST['broadcast_id'];
@@ -67,7 +74,7 @@ $broadcasts = $stmt->fetchAll();
         </div>
     <?php endif; ?>
 
-    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+    <div class="dash-grid-sidebar-rev" style="display: grid;  gap: 2rem;">
         <!-- Form -->
         <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; padding: 1.5rem; height: fit-content;">
             <h3 style="margin-top:0; color:var(--dash-text); margin-bottom:1rem;">Kirim Broadcast Baru</h3>
@@ -102,7 +109,7 @@ $broadcasts = $stmt->fetchAll();
                 </div>
                 
                 <button type="submit" style="width: 100%; background: var(--dash-primary); color: white; border: none; padding: 0.85rem; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                    🚀 Kirim Sekarang
+                     Kirim Sekarang
                 </button>
             </form>
         </div>

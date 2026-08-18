@@ -38,6 +38,31 @@ if ($active_tab === 'completed' || $active_tab === 'ongoing') {
     ");
     $stmt->execute([$user_id]);
     $items = $stmt->fetchAll();
+} else if ($active_tab === 'xp_history') {
+    $stmt = $pdo->prepare("
+        SELECT 'material' as type, m.title as title, m.xp_reward as xp, up.completed_at as date 
+        FROM user_progress up 
+        JOIN materials m ON up.material_id = m.id 
+        WHERE up.user_id = ? AND up.status = 'completed'
+        
+        UNION ALL
+        
+        SELECT 'exam' as type, e.title as title, 50 as xp, er.attempt_date as date 
+        FROM exam_results er 
+        JOIN exams e ON er.exam_id = e.id 
+        WHERE er.user_id = ? AND er.passed = 1
+        
+        UNION ALL
+        
+        SELECT 'challenge' as type, cc.title as title, cc.xp_reward as xp, ccc.completed_at as date 
+        FROM championship_completed_challenges ccc 
+        JOIN championship_challenges cc ON ccc.challenge_id = cc.id 
+        WHERE ccc.user_id = ?
+        
+        ORDER BY date DESC
+    ");
+    $stmt->execute([$user_id, $user_id, $user_id]);
+    $items = $stmt->fetchAll();
 }
 ?>
 
@@ -62,6 +87,10 @@ if ($active_tab === 'completed' || $active_tab === 'ongoing') {
         <a href="index.php?page=my_achievements&tab=badges" style="text-decoration: none; padding: 1rem 1.5rem; font-weight: 600; color: <?php echo $active_tab === 'badges' ? '#f59e0b' : 'var(--dash-text-muted)'; ?>; border-bottom: 3px solid <?php echo $active_tab === 'badges' ? '#f59e0b' : 'transparent'; ?>; transition: all 0.2s;">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" style="vertical-align: middle; margin-right: 4px; margin-top: -2px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
             Koleksi Badges
+        </a>
+        <a href="index.php?page=my_achievements&tab=xp_history" style="text-decoration: none; padding: 1rem 1.5rem; font-weight: 600; color: <?php echo $active_tab === 'xp_history' ? '#10b981' : 'var(--dash-text-muted)'; ?>; border-bottom: 3px solid <?php echo $active_tab === 'xp_history' ? '#10b981' : 'transparent'; ?>; transition: all 0.2s;">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" style="vertical-align: middle; margin-right: 4px; margin-top: -2px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+            Riwayat XP
         </a>
     </div>
 
@@ -107,7 +136,7 @@ if ($active_tab === 'completed' || $active_tab === 'ongoing') {
                         <?php echo htmlspecialchars($group['course_title']); ?>
                     </h2>
                     
-                    <div class="courses-grid" style="grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
+                    <div class="courses-grid" style="grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 1.5rem;">
                         <?php foreach ($group['materials'] as $item): ?>
                             <a href="index.php?page=course_learn&id=<?php echo $item['id']; ?>" style="text-decoration: none; color: inherit; display: block;">
                                 <div class="course-card" style="transition: transform 0.2s, box-shadow 0.2s; height: 100%; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--dash-border);">
@@ -142,7 +171,7 @@ if ($active_tab === 'completed' || $active_tab === 'ongoing') {
                     </div>
                 </div>
             <?php else: ?>
-                <div class="courses-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+                <div class="courses-grid" style="grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 1.5rem;">
                     <?php foreach ($grouped_items as $course_id => $group): ?>
                         <a href="index.php?page=my_achievements&tab=<?php echo $active_tab; ?>&course_id=<?php echo $course_id; ?>" style="text-decoration:none; color:inherit; display:block;">
                             <div class="course-card" style="transition: transform 0.2s, box-shadow 0.2s; height: 100%; display: flex; flex-direction: column; position: relative;">
@@ -188,7 +217,7 @@ if ($active_tab === 'completed' || $active_tab === 'ongoing') {
                 </div>
             <?php endif; ?>
         <?php elseif ($active_tab === 'badges'): ?>
-            <div class="courses-grid" style="grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
+            <div class="courses-grid" style="grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 1.5rem;">
                 <?php foreach ($items as $badge): ?>
                     <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; padding: 1.5rem; text-align: center; display: flex; flex-direction: column; align-items: center; transition: transform 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
                         <?php if (!empty($badge['icon_url'])): ?>
@@ -205,6 +234,56 @@ if ($active_tab === 'completed' || $active_tab === 'ongoing') {
                         </div>
                     </div>
                 <?php endforeach; ?>
+            </div>
+        <?php elseif ($active_tab === 'xp_history'): ?>
+            <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                <div style="position: relative;">
+                    <!-- Timeline vertical line -->
+                    <div style="position: absolute; left: 15px; top: 0; bottom: 0; width: 2px; background: var(--dash-border);"></div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <?php foreach ($items as $item): ?>
+                            <div style="display: flex; gap: 1rem; position: relative;">
+                                <?php
+                                    $icon_color = '#3b82f6';
+                                    $icon_bg = 'rgba(59, 130, 246, 0.1)';
+                                    $icon_svg = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />';
+                                    $action_text = 'Menyelesaikan Materi';
+                                    
+                                    if ($item['type'] === 'exam') {
+                                        $icon_color = '#10b981';
+                                        $icon_bg = 'rgba(16, 185, 129, 0.1)';
+                                        $icon_svg = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />';
+                                        $action_text = 'Lulus Ujian';
+                                    } elseif ($item['type'] === 'challenge') {
+                                        $icon_color = '#f59e0b';
+                                        $icon_bg = 'rgba(245, 158, 11, 0.1)';
+                                        $icon_svg = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />';
+                                        $action_text = 'Menyelesaikan Tantangan';
+                                    }
+                                ?>
+                                <div style="width: 32px; height: 32px; background: <?php echo $icon_bg; ?>; color: <?php echo $icon_color; ?>; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 2; flex-shrink: 0; margin-top: 4px; box-shadow: 0 0 0 4px var(--dash-sidebar);">
+                                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"><?php echo $icon_svg; ?></svg>
+                                </div>
+                                <div style="flex: 1; background: var(--dash-sidebar); border: 1px solid var(--dash-border); padding: 1rem 1.5rem; border-radius: 12px; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.05)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; gap: 1rem;">
+                                        <div>
+                                            <div style="font-size: 0.8rem; color: var(--dash-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;"><?php echo $action_text; ?></div>
+                                            <div style="font-weight: 700; color: var(--dash-text); font-size: 1.1rem; line-height: 1.3;"><?php echo htmlspecialchars($item['title']); ?></div>
+                                        </div>
+                                        <div style="font-weight: 800; color: #10b981; font-size: 1.1rem; background: rgba(16, 185, 129, 0.1); padding: 4px 12px; border-radius: 8px; flex-shrink: 0;">
+                                            +<?php echo $item['xp']; ?> XP
+                                        </div>
+                                    </div>
+                                    <div style="font-size: 0.8rem; color: var(--dash-text-muted);">
+                                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" style="vertical-align: middle; margin-right: 4px; margin-top: -2px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        <?php echo date('d M Y, H:i', strtotime($item['date'])); ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
             </div>
         <?php endif; ?>
     <?php endif; ?>

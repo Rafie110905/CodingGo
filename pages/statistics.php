@@ -128,7 +128,7 @@ foreach ($course_breakdowns as $b) {
     </div>
 
     <!-- Stats Cards -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
         <!-- Card 1: Time Spent -->
         <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; padding: 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
             <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(59, 130, 246, 0.1); color: var(--dash-primary); display: flex; align-items: center; justify-content: center;">
@@ -164,18 +164,20 @@ foreach ($course_breakdowns as $b) {
         </a>
 
         <!-- Card 3: Total XP -->
-        <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; padding: 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
-            <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(245, 158, 11, 0.1); color: #f59e0b; display: flex; align-items: center; justify-content: center;">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="28"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+        <a href="index.php?page=my_achievements&tab=xp_history" style="text-decoration:none; color:inherit; display:block;">
+            <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; padding: 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 20px -8px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(245, 158, 11, 0.1); color: #f59e0b; display: flex; align-items: center; justify-content: center;">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="28"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                </div>
+                <div>
+                    <div style="font-size: 0.85rem; font-weight: 600; color: var(--dash-text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Total XP</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--dash-text); margin-top: 0.25rem;"><?php echo number_format($user_xp); ?> XP</div>
+                </div>
             </div>
-            <div>
-                <div style="font-size: 0.85rem; font-weight: 600; color: var(--dash-text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Total XP</div>
-                <div style="font-size: 1.5rem; font-weight: 700; color: var(--dash-text); margin-top: 0.25rem;"><?php echo number_format($user_xp); ?> XP</div>
-            </div>
-        </div>
+        </a>
     </div>
 
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+    <div class="dash-grid-sidebar" style="display: grid;  gap: 2rem; margin-bottom: 2rem;">
         <!-- Chart Section -->
         <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 16px; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
             <h3 style="font-size: 1.2rem; color: var(--dash-text); margin-bottom: 1.5rem;">Progress Mingguan (7 Hari Terakhir)</h3>

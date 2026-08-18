@@ -29,7 +29,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['credential'])) {
             $stmt->execute([$email]);
             $user = $stmt->fetch();
             
+            // Determine action (login vs register)
+            $action = $_GET['action'] ?? '';
+            
             if (!$user) {
+                // Jika sedang login tapi belum terdaftar, arahkan ke login dengan error
+                if ($action === 'login') {
+                    header('Location: login.php?error=google_not_registered');
+                    exit();
+                }
+
                 // Cek apakah pendaftaran Google diizinkan
                 $stmt_reg = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'enable_registration_google'");
                 $stmt_reg->execute();

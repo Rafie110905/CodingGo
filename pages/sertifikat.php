@@ -48,7 +48,7 @@ $in_progress = array_filter($in_progress_all, function ($c) use ($owned_course_i
             <p style="color: var(--dash-text-muted);">Selesaikan semua materi dan lulus ujian akhir sebuah kelas untuk mendapatkan sertifikat pertamamu.</p>
         </div>
     <?php else: ?>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
             <?php foreach ($certificates as $c): ?>
             <?php 
                 $theme = $c['theme_color'] ?? '#4361ee'; 
@@ -85,7 +85,7 @@ $in_progress = array_filter($in_progress_all, function ($c) use ($owned_course_i
     <div class="section-header" style="margin-bottom: 1.25rem;">
         <h2>Sedang Dalam Progress</h2>
     </div>
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 1.5rem;">
         <?php foreach ($in_progress as $c): ?>
         <?php
             $has_exam = $c['exam_count'] > 0;

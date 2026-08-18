@@ -116,13 +116,21 @@ $replies = $stmt_rep->fetchAll();
                 
                 <?php if(count($post_badges) > 0): ?>
                     <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                        <?php foreach($post_badges as $b): ?>
+                        <?php 
+                        $max_badges = 5;
+                        $displayed_badges = array_slice($post_badges, 0, $max_badges);
+                        $extra_badges = count($post_badges) - $max_badges;
+                        foreach($displayed_badges as $b): 
+                        ?>
                             <?php if(!empty($b['icon_url'])): ?>
                                 <img src="<?php echo htmlspecialchars($b['icon_url']); ?>" title="<?php echo htmlspecialchars($b['name']); ?>" style="width:28px; height:28px; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
                             <?php else: ?>
                                 <div title="<?php echo htmlspecialchars($b['name']); ?>" style="width:28px; height:28px; border-radius:50%; background:#f59e0b; color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold;">B</div>
                             <?php endif; ?>
                         <?php endforeach; ?>
+                        <?php if ($extra_badges > 0): ?>
+                            <div style="width:28px; height:28px; border-radius:50%; background:var(--dash-border); color:var(--dash-text-muted); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold;">+<?php echo $extra_badges; ?></div>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
             </div>
@@ -205,11 +213,21 @@ $replies = $stmt_rep->fetchAll();
                         
                         <?php if(count($r_badges) > 0): ?>
                             <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                                <?php foreach($r_badges as $b): ?>
+                                <?php 
+                                $max_badges = 5;
+                                $displayed_badges = array_slice($r_badges, 0, $max_badges);
+                                $extra_badges = count($r_badges) - $max_badges;
+                                foreach($displayed_badges as $b): 
+                                ?>
                                     <?php if(!empty($b['icon_url'])): ?>
                                         <img src="<?php echo htmlspecialchars($b['icon_url']); ?>" title="<?php echo htmlspecialchars($b['name']); ?>" style="width:20px; height:20px; object-fit:contain;">
+                                    <?php else: ?>
+                                        <div title="<?php echo htmlspecialchars($b['name']); ?>" style="width:20px; height:20px; border-radius:50%; background:#f59e0b; color:white; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:bold;">B</div>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
+                                <?php if ($extra_badges > 0): ?>
+                                    <div style="width:20px; height:20px; border-radius:50%; background:var(--dash-border); color:var(--dash-text-muted); display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:bold;">+<?php echo $extra_badges; ?></div>
+                                <?php endif; ?>
                             </div>
                         <?php endif; ?>
                     </div>

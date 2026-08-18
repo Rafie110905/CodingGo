@@ -53,7 +53,7 @@ $stmt_top = $pdo->query("SELECT u.id, u.name, u.picture, u.profile_title, u.prof
 $top10 = $stmt_top->fetchAll();
 ?>
 
-<div class="dash-left" style="grid-column: 1 / -1; display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+<div class="dash-left dash-grid-sidebar\" style="grid-column: 1 / -1; display: grid;  gap: 2rem;">
     <!-- Feed -->
     <div>
         <div class="section-header" style="margin-bottom: 2rem;">
@@ -111,13 +111,21 @@ $top10 = $stmt_top->fetchAll();
                                 <!-- Badges Showcase -->
                                 <?php if(count($user_badges) > 0): ?>
                                     <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                                        <?php foreach($user_badges as $b): ?>
+                                        <?php 
+                                        $max_badges = 5;
+                                        $displayed_badges = array_slice($user_badges, 0, $max_badges);
+                                        $extra_badges = count($user_badges) - $max_badges;
+                                        foreach($displayed_badges as $b): 
+                                        ?>
                                             <?php if(!empty($b['icon_url'])): ?>
                                                 <img src="<?php echo htmlspecialchars($b['icon_url']); ?>" title="<?php echo htmlspecialchars($b['name']); ?>" style="width:24px; height:24px; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
                                             <?php else: ?>
                                                 <div title="<?php echo htmlspecialchars($b['name']); ?>" style="width:24px; height:24px; border-radius:50%; background:#f59e0b; color:white; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold;">B</div>
                                             <?php endif; ?>
                                         <?php endforeach; ?>
+                                        <?php if ($extra_badges > 0): ?>
+                                            <div style="width:24px; height:24px; border-radius:50%; background:var(--dash-border); color:var(--dash-text-muted); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold;">+<?php echo $extra_badges; ?></div>
+                                        <?php endif; ?>
                                     </div>
                                 <?php endif; ?>
                             </div>

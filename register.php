@@ -544,7 +544,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
                          data-client_id="19210893773-v9uvpvif357di90h12k7gdu82ncckclh.apps.googleusercontent.com"
                          data-context="signup"
                          data-ux_mode="popup"
-                         data-login_uri="http://localhost/CodingGo/google_auth.php"
+                         data-login_uri="http://localhost/CodingGo/google_auth.php?action=register"
                          data-auto_prompt="false">
                     </div>
 

@@ -172,7 +172,7 @@ $user_json = json_encode([
             </div>
             
             <div id="tab1" class="tab-content" style="display:block;">
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="dash-grid-2" style="display:grid;  gap: 1.5rem;">
                 <div style="<?php echo ($user['total_badges'] < 3 && $_SESSION['user_role'] !== 'admin') ? 'opacity:0.5; pointer-events:none;' : ''; ?>">
                     <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--dash-text);">
                         Warna Border Profil
@@ -196,7 +196,7 @@ $user_json = json_encode([
                 </label>
                 <p style="font-size:0.8rem; color:var(--dash-text-muted); margin-bottom:1rem;">Pilih banner animasi yang akan tampil di kartu profilmu saat dilihat orang lain.</p>
 
-                <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem;">
+                <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 120px), 1fr)); gap: 1rem;">
                     <!-- Tanpa Banner -->
                     <label style="cursor:pointer; display:block;">
                         <input type="radio" name="banner_gif" value="" <?php echo empty($user['banner_gif']) ? 'checked' : ''; ?> style="position:absolute; opacity:0;" onchange="document.querySelectorAll('.banner-option').forEach(el => el.style.borderColor = 'var(--dash-border)'); this.nextElementSibling.style.borderColor = 'var(--dash-primary)';">

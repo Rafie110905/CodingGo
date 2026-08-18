@@ -24,7 +24,7 @@ $leaderboard = $stmt->fetchAll();
     </div>
 
     <!-- Peringkat List -->
-    <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.02);">
+    <div style="background: var(--dash-sidebar); border: 1px solid var(--dash-border); border-radius: 20px; overflow-x: auto; overflow-y: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.02);">
         
         <div style="display:grid; grid-template-columns: 80px 1fr 120px 120px; gap: 1rem; padding: 1.5rem; background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--dash-border); font-weight: 700; color: var(--dash-text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
             <div style="text-align:center;">Peringkat</div>
