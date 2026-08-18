@@ -131,7 +131,7 @@ $masters = $stmt_master->fetchAll();
     <div class="section-header" style="margin-bottom: 1.25rem;">
         <h2>Siswa dengan Badge "Master" Terbanyak</h2>
     </div>
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr)); gap: 1.25rem; margin-bottom: 2.5rem;">
         <?php if (count($masters) === 0): ?>
             <div style="grid-column: 1/-1; background: var(--dash-sidebar); border: 1px dashed var(--dash-border); padding: 2.5rem; text-align: center; border-radius: 16px; color: var(--dash-text-muted);">
                 Belum ada siswa yang lulus ujian dan meraih badge Master. Jadilah yang pertama!
@@ -158,7 +158,7 @@ $masters = $stmt_master->fetchAll();
     <div class="section-header" style="margin-bottom: 1.25rem;">
         <h2>Cara Menjadi Coding Champion</h2>
     </div>
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+    <div class="dash-grid-3" style="display: grid;  gap: 1.5rem;">
         <div class="course-card" style="padding: 1.5rem;">
             <div style="width:44px; height:44px; border-radius:12px; background:#eff6ff; color:#3b82f6; display:flex; align-items:center; justify-content:center; margin-bottom:1rem;">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>

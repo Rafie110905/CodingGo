@@ -39,7 +39,7 @@ $stmt = $pdo->query("SELECT * FROM courses ORDER BY created_at DESC");
 $courses = $stmt->fetchAll();
 ?>
 
-<div class="dash-left" style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 350px; gap: 2rem;">
+<div class="dash-left dash-grid-fixed-right\" style="grid-column: 1 / -1; display: grid;  gap: 2rem;">
     <!-- Daftar Kursus -->
     <div>
         <div class="section-header" style="margin-bottom: 2rem;">

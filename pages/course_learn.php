@@ -101,6 +101,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $xp_reward = (int)$material['xp_reward'];
             $pdo->prepare("UPDATE users SET xp_points = xp_points + ? WHERE id = ?")->execute([$xp_reward, $user_id]);
             
+            // Notify User
+            $notif_title = "Materi Selesai!";
+            $notif_msg = "Selamat! Anda mendapatkan +" . $xp_reward . " XP karena telah menyelesaikan materi '" . $material['title'] . "'.";
+            $notif_link = "index.php?page=my_achievements&tab=xp_history";
+            $stmt_notif = $pdo->prepare("INSERT INTO user_notifications (user_id, type, title, message, link_url) VALUES (?, 'system', ?, ?, ?)");
+            $stmt_notif->execute([$user_id, $notif_title, $notif_msg, $notif_link]);
+            
             // Tambahkan XP ke Championship jika sedang mengikuti turnamen aktif
             $stmt_active_champ = $pdo->prepare("
                 SELECT cp.championship_id 
@@ -132,6 +139,11 @@ $stmt_my_rating = $pdo->prepare("SELECT * FROM course_ratings WHERE course_id = 
 $stmt_my_rating->execute([$course_id, $user_id]);
 $my_rating = $stmt_my_rating->fetch();
 
+// Ambil materi yang sudah diselesaikan user
+$stmt_prog_sidebar = $pdo->prepare("SELECT material_id FROM user_progress WHERE user_id = ? AND status = 'completed'");
+$stmt_prog_sidebar->execute([$user_id]);
+$completed_materials = $stmt_prog_sidebar->fetchAll(PDO::FETCH_COLUMN);
+
 // Ambil semua materi untuk sidebar
 $stmt_all = $pdo->prepare("SELECT id, title, unlock_keyword FROM materials WHERE course_id = ? ORDER BY order_index ASC");
 $stmt_all->execute([$course_id]);
@@ -146,30 +158,91 @@ $all_materials = $stmt_all->fetchAll();
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 250px 1fr; gap: 2rem;">
+    <style>
+        .course-learn-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+        }
+        .course-sidebar-content {
+            max-height: calc(100vh - 150px);
+            overflow-y: auto;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+        details[open] .summary-chevron {
+            transform: rotate(180deg);
+        }
+        .summary-chevron {
+            transition: transform 0.3s ease;
+        }
+        .course-main-content {
+            background: var(--bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 3rem;
+            min-height: 500px;
+        }
+        @media (max-width: 850px) {
+            .course-learn-layout {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            .course-learn-sidebar {
+                position: static !important;
+            }
+            .course-sidebar-content {
+                max-height: 250px; /* Limit height on mobile so it doesn't push content too far */
+            }
+            .course-main-content {
+                padding: 1.5rem; /* Less padding on mobile */
+                min-height: auto;
+            }
+        }
+    </style>
+
+    <div class="course-learn-layout">
         
         <!-- Sidebar Daftar Materi -->
-        <div style="background: var(--bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem; align-self: start; position: sticky; top: 2rem;">
-            <h3 style="font-size: 1rem; color: var(--text); margin-top: 0; margin-bottom: 1rem;">Daftar Bab</h3>
-            <div style="display:flex; flex-direction:column; gap:0.5rem;">
-                <?php foreach ($all_materials as $index => $am): ?>
-                <?php
-                    $is_current = ($am['id'] == $material_id);
-                    $style = $is_current ? 'background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-left: 3px solid #3b82f6;' : 'color: var(--text-muted);';
-                ?>
-                <a href="index.php?page=course_learn&id=<?php echo $am['id']; ?>" style="text-decoration:none; padding: 0.6rem 0.75rem; border-radius: 8px; font-size: 0.85rem; font-weight: 500; <?php echo $style; ?> display:flex; align-items:center; gap:10px;">
-                    <?php echo renderMateriIcon($am['title'], 28, '8px'); ?>
-                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">Bab <?php echo $index + 1; ?>: <?php echo htmlspecialchars($am['title']); ?></span>
-                    <?php if (!empty($am['unlock_keyword'])): ?>
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="13" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                    <?php endif; ?>
-                </a>
-                <?php endforeach; ?>
-            </div>
+        <div class="course-learn-sidebar" style="background: var(--bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem; align-self: start; position: sticky; top: 2rem;">
+            <details id="mobile-chapter-toggle" open>
+                <summary style="font-size: 1rem; color: var(--text); margin-top: 0; margin-bottom: 1rem; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; list-style: none;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" style="color: #3b82f6;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                        </svg>
+                        Daftar Bab
+                    </div>
+                    <svg class="summary-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <div class="course-sidebar-content" style="display:flex; flex-direction:column; gap:0.5rem; padding-right: 5px;">
+                    <?php foreach ($all_materials as $index => $am): ?>
+                    <?php
+                        $is_current = ($am['id'] == $material_id);
+                        $style = $is_current ? 'background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-left: 3px solid #3b82f6;' : 'color: var(--text-muted);';
+                    ?>
+                    <a href="index.php?page=course_learn&id=<?php echo $am['id']; ?>" style="text-decoration:none; padding: 0.6rem 0.75rem; border-radius: 8px; font-size: 0.85rem; font-weight: 500; <?php echo $style; ?> display:flex; align-items:center; gap:10px;">
+                        <?php echo renderMateriIcon($am['title'], 28, '8px'); ?>
+                        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">Bab <?php echo $index + 1; ?>: <?php echo htmlspecialchars($am['title']); ?></span>
+                        <?php if (in_array($am['id'], $completed_materials)): ?>
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" style="color: #10b981; flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        <?php elseif (!empty($am['unlock_keyword'])): ?>
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="13" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                        <?php endif; ?>
+                    </a>
+                    <?php endforeach; ?>
+                </div>
+            </details>
+            <script>
+                if(window.innerWidth <= 850) {
+                    document.getElementById('mobile-chapter-toggle').removeAttribute('open');
+                }
+            </script>
         </div>
 
         <!-- Main Content -->
-        <div style="background: var(--bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 3rem; min-height: 500px;">
+        <div class="course-main-content">
             <?php if (isset($_GET['success']) && $_GET['success'] === 'unlocked'): ?>
                 <div style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid #10b981; text-align:center; font-weight:bold;">
                     🎉 Selamat! Anda berhasil memecahkan teka-teki dan membuka materi ini!

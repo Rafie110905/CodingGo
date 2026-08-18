@@ -89,7 +89,7 @@ if ($has_access) {
             <p style="color: var(--dash-text-muted);">Saat ini belum ada kelas yang tersedia untuk kategori <b><?php echo htmlspecialchars($category); ?></b>.</p>
         </div>
     <?php else: ?>
-        <div class="courses-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+        <div class="courses-grid" style="grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 1.5rem;">
             <?php foreach ($courses as $c): ?>
             <a href="index.php?page=course_detail&id=<?php echo $c['id']; ?>" style="text-decoration:none; color:inherit; display:block;">
                 <div class="course-card" style="transition: transform 0.2s, box-shadow 0.2s; height: 100%; display: flex; flex-direction: column;">

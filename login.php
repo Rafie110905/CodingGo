@@ -428,7 +428,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
                          data-client_id="19210893773-v9uvpvif357di90h12k7gdu82ncckclh.apps.googleusercontent.com"
                          data-context="signin"
                          data-ux_mode="popup"
-                         data-login_uri="http://localhost/CodingGo/google_auth.php"
+                         data-login_uri="http://localhost/CodingGo/google_auth.php?action=login"
                          data-auto_prompt="false">
                     </div>
 
@@ -495,6 +495,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
                 moonIcon.style.display = 'none';
             }
         });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        <?php if (isset($_GET['error']) && $_GET['error'] === 'google_not_registered'): ?>
+            Swal.fire({
+                icon: 'warning',
+                title: 'Akses Ditolak',
+                text: 'Akun Google Anda belum terdaftar. Silakan register terlebih dahulu.',
+                confirmButtonColor: '#3b82f6',
+                confirmButtonText: 'Tutup'
+            });
+        <?php endif; ?>
     </script>
 </body>
 </html>

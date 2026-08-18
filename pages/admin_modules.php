@@ -55,6 +55,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $stmt_add = $pdo->prepare("INSERT INTO materials (course_id, title, content_type, content_text, video_url, xp_reward, unlock_keyword, order_index, thumbnail, attachment_file) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt_add->execute([$course_id, $title, $content_type, $content_text, $video_url, $xp_reward, $unlock_keyword, $new_order, $thumbnail, $attachment_file]);
+        $new_material_id = $pdo->lastInsertId();
+        
+        // Fetch course info to notify properly
+        $stmt_c = $pdo->prepare("SELECT title, category FROM courses WHERE id = ?");
+        $stmt_c->execute([$course_id]);
+        $c_info = $stmt_c->fetch();
+        
+        if ($c_info) {
+            $notif_title = "Materi Baru Ditambahkan!";
+            $notif_msg = "Materi '" . $title . "' telah ditambahkan di kelas " . $c_info['title'] . ". Ayo pelajari sekarang!";
+            $notif_link = "index.php?page=course_learn&id=" . $new_material_id;
+            
+            // Send to students (ideally only those with access to this category, but sending to all is fine or checking category)
+            // Let's check category from courses
+            $c_cat = $c_info['category']; // e.g., 'SD', 'SMP', 'SMA', 'Mahasiswa'
+            
+            $stmt_notif = $pdo->prepare("
+                INSERT INTO user_notifications (user_id, type, title, message, link_url) 
+                SELECT id, 'system', ?, ?, ? 
+                FROM users 
+                WHERE role = 'student' AND (school_level = ? OR access_level = 'Semua Akses' OR ? = 'Umum')
+            ");
+            $stmt_notif->execute([$notif_title, $notif_msg, $notif_link, $c_cat, $c_cat]);
+        }
         
         header("Location: index.php?page=admin_modules&course_id=" . $course_id);
         exit();
@@ -84,7 +108,7 @@ $materials = $stmt_mat->fetchAll();
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 400px; gap: 2rem;">
+    <div class="dash-grid-fixed-right" style="display: grid;  gap: 2rem;">
         <!-- Daftar Materi -->
         <div>
             <?php if (count($materials) === 0): ?>

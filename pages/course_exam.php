@@ -104,6 +104,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $pdo->prepare("INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)")->execute([$user_id, $badge_id]);
             // Update jumlah badge & XP di profil user
             $pdo->prepare("UPDATE users SET total_badges = total_badges + 1, xp_points = xp_points + 50 WHERE id = ?")->execute([$user_id]);
+            
+            // Notification: Exam passed and Badge earned
+            $notif_title = "Lulus Ujian & Badge Baru!";
+            $notif_msg = "Selamat! Anda lulus ujian '" . $exam['title'] . "', mendapatkan +50 XP, dan meraih Badge '" . $badge_name . "'.";
+            $notif_link = "index.php?page=my_achievements&tab=xp_history";
+            $pdo->prepare("INSERT INTO user_notifications (user_id, type, title, message, link_url) VALUES (?, 'system', ?, ?, ?)")->execute([$user_id, $notif_title, $notif_msg, $notif_link]);
+        } else {
+            // Give XP anyway for passing, but maybe no badge notification
+            $pdo->prepare("UPDATE users SET xp_points = xp_points + 50 WHERE id = ?")->execute([$user_id]);
+            
+            // Notification: Exam passed
+            $notif_title = "Lulus Ujian!";
+            $notif_msg = "Anda lulus ujian '" . $exam['title'] . "' dan mendapatkan +50 XP.";
+            $notif_link = "index.php?page=my_achievements&tab=xp_history";
+            $pdo->prepare("INSERT INTO user_notifications (user_id, type, title, message, link_url) VALUES (?, 'system', ?, ?, ?)")->execute([$user_id, $notif_title, $notif_msg, $notif_link]);
         }
 
         // === Terbitkan Sertifikat otomatis jika seluruh materi course juga sudah selesai ===
@@ -125,6 +140,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $pdo->prepare("INSERT INTO certificates (certificate_code, user_id, course_id) VALUES (?, ?, ?)")
                     ->execute([$cert_code, $user_id, $course_id]);
                 $new_certificate = $cert_code;
+                
+                // Notification: Certificate generated
+                $notif_title_cert = "Sertifikat Kelulusan!";
+                $notif_msg_cert = "Sertifikat untuk kursus '" . $exam['course_title'] . "' telah terbit. Cek halaman Sertifikat.";
+                $notif_link_cert = "index.php?page=sertifikat";
+                $pdo->prepare("INSERT INTO user_notifications (user_id, type, title, message, link_url) VALUES (?, 'system', ?, ?, ?)")->execute([$user_id, $notif_title_cert, $notif_msg_cert, $notif_link_cert]);
+                
             } else {
                 $new_certificate = $existing_cert['certificate_code'];
             }

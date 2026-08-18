@@ -83,7 +83,7 @@ $questions = $stmt_q->fetchAll();
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 400px; gap: 2rem;">
+    <div class="dash-grid-fixed-right" style="display: grid;  gap: 2rem;">
         <!-- Daftar Soal -->
         <div>
             <?php if (count($questions) === 0): ?>
@@ -109,7 +109,7 @@ $questions = $stmt_q->fetchAll();
                             </div>
                             
                             <?php if ($q['question_type'] === 'multiple_choice'): ?>
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:1rem;">
+                            <div class="dash-grid-2" style="display:grid;  gap:0.75rem; margin-bottom:1rem;">
                                 <?php 
                                 $opts = ['a' => $q['option_a'], 'b' => $q['option_b'], 'c' => $q['option_c'], 'd' => $q['option_d']];
                                 foreach ($opts as $key => $val):

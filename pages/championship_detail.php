@@ -69,7 +69,7 @@ $leaderboard = $stmt_lb->fetchAll();
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 350px; gap: 2rem;">
+    <div class="dash-grid-fixed-right" style="display: grid;  gap: 2rem;">
         
         <!-- Kolom Kiri: Challenges -->
         <div>

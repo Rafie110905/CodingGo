@@ -64,7 +64,7 @@ if (isset($_GET['edit_id'])) {
 }
 ?>
 
-<div class="dash-left" style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 350px; gap: 2rem;">
+<div class="dash-left dash-grid-fixed-right\" style="grid-column: 1 / -1; display: grid;  gap: 2rem;">
     <!-- Daftar Badges -->
     <div>
         <div class="section-header" style="margin-bottom: 2rem;">
@@ -74,7 +74,7 @@ if (isset($_GET['edit_id'])) {
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 1rem;">
             <?php if (count($badges) === 0): ?>
                 <div style="grid-column: 1/-1; background: var(--dash-sidebar); border: 1px dashed var(--dash-border); padding: 3rem; text-align: center; border-radius: 16px;">
                     <h3 style="color: var(--dash-text-muted);">Belum ada Badge yang dibuat.</h3>

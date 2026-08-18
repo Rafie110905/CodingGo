@@ -62,6 +62,10 @@ if (in_array($current_page, ['dashboard', 'course_list', 'sertifikat', 'course_d
 }
 ?>
 <header class="dash-topbar">
+    <div class="mobile-sidebar-overlay" onclick="document.querySelector('.dash-sidebar').classList.remove('show-mobile'); this.classList.remove('show');"></div>
+    <button class="mobile-sidebar-toggle" style="display:none; background:transparent; border:none; color:var(--dash-text); cursor:pointer; padding:0; margin-right:1rem;" onclick="document.querySelector('.dash-sidebar').classList.toggle('show-mobile'); document.querySelector('.mobile-sidebar-overlay').classList.toggle('show');">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+    </button>
     <div class="dash-search-box">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" style="color:var(--dash-text-muted);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
         <input type="text" id="global-search" placeholder="<?php echo $search_placeholder; ?>">
@@ -79,8 +83,11 @@ if (in_array($current_page, ['dashboard', 'course_list', 'sertifikat', 'course_d
             <div id="notif-dropdown" style="display:none; position:absolute; right:0; top:calc(100% + 10px); background:var(--dash-sidebar); border:1px solid var(--dash-border); border-radius:12px; width:300px; box-shadow:0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); z-index:100; overflow:hidden;">
                 <div style="padding:1rem; border-bottom:1px solid var(--dash-border); font-weight:600; color:var(--dash-text); display:flex; justify-content:space-between; align-items:center;">
                     Notifikasi
+                    <?php if(count($notifications) > 0): ?>
+                        <button onclick="clearNotifications(event)" style="font-size:0.75rem; color:#ef4444; background:transparent; border:none; cursor:pointer; padding:4px 8px; border-radius:4px;" onmouseover="this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.background='transparent'">Bersihkan</button>
+                    <?php endif; ?>
                 </div>
-                <div style="max-height:350px; overflow-y:auto;">
+                <div style="max-height:350px; overflow-y:auto;" id="notif-list-container">
                     <?php if(count($notifications) > 0): ?>
                         <?php foreach($notifications as $notif): ?>
                             <a href="<?php echo htmlspecialchars($notif['link_url'] ?? '#'); ?>" style="display:block; padding:1rem; border-bottom:1px solid var(--dash-border); text-decoration:none; transition:background 0.2s; background:<?php echo $notif['is_read'] ? 'transparent' : 'rgba(59, 130, 246, 0.05)'; ?>;" onmouseover="this.style.background='var(--dash-bg)'" onmouseout="this.style.background='<?php echo $notif['is_read'] ? 'transparent' : 'rgba(59, 130, 246, 0.05)'; ?>'">
@@ -293,6 +300,26 @@ if (in_array($current_page, ['dashboard', 'course_list', 'sertifikat', 'course_d
                         }
                     });
                 });
+            }
+            
+            function clearNotifications(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                fetch('api/clear_notifications.php')
+                .then(response => response.json())
+                .then(data => {
+                    if(data.success) {
+                        var listContainer = document.getElementById('notif-list-container');
+                        if(listContainer) {
+                            listContainer.innerHTML = '<div style="padding:2rem 1rem; text-align:center; color:var(--dash-text-muted); font-size:0.9rem;">Tidak ada notifikasi saat ini.</div>';
+                        }
+                        var btn = e.target;
+                        if(btn) btn.style.display = 'none';
+                        var badge = document.querySelector('.notif-badge');
+                        if(badge) badge.style.display = 'none';
+                    }
+                })
+                .catch(err => console.error(err));
             }
         </script>
     </div>

@@ -176,14 +176,16 @@ if (!empty($shown_course_ids)) {
             </div>
         </a>
 
-        <!-- XP Points (Tidak di-link) -->
-        <div class="stat-card" style="border-top:4px solid var(--dash-warning);">
-            <div style="width:40px; height:40px; background:rgba(247, 37, 133, 0.1); color:var(--dash-warning); border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:0.5rem;">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+        <!-- XP Points -->
+        <a href="index.php?page=my_achievements&tab=xp_history" style="text-decoration:none; color:inherit; display:block;">
+            <div class="stat-card" style="border-top:4px solid var(--dash-warning); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 20px -8px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="width:40px; height:40px; background:rgba(247, 37, 133, 0.1); color:var(--dash-warning); border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:0.5rem;">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                </div>
+                <div class="stat-val"><?php echo number_format($xp); ?></div>
+                <div class="stat-label">XP Points <span style="color:var(--dash-text-muted); font-size:0.7rem; margin-left:4px;">Level <?php echo floor($xp / 100) + 1; ?></span></div>
             </div>
-            <div class="stat-val"><?php echo number_format($xp); ?></div>
-            <div class="stat-label">XP Points <span style="color:var(--dash-text-muted); font-size:0.7rem; margin-left:4px;">Level <?php echo floor($xp / 100) + 1; ?></span></div>
-        </div>
+        </a>
 
         <!-- Badges -->
         <a href="index.php?page=my_achievements&tab=badges" style="text-decoration:none; color:inherit; display:block;">
@@ -208,7 +210,7 @@ if (!empty($shown_course_ids)) {
                 <a href="index.php?page=course_list" style="display:inline-block; background:var(--dash-primary); color:white; padding:0.6rem 1.25rem; border-radius:8px; font-weight:600; text-decoration:none; font-size:0.85rem;">Jelajahi Kelas &rarr;</a>
             </div>
             <?php else: ?>
-            <div class="no-filter" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+            <div class="no-filter" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 1.5rem;">
                 <?php foreach ($continue_courses as $c):
                     $has_exam = $c['exam_count'] > 0;
                     $total_items = $c['total_materials'] + ($has_exam ? 1 : 0);
@@ -251,7 +253,7 @@ if (!empty($shown_course_ids)) {
                 <p style="color: var(--dash-text-muted);">Belum ada rekomendasi kelas baru untukmu saat ini. Kamu sudah menjelajahi semua kelas yang tersedia! 🎉</p>
             </div>
             <?php else: ?>
-            <div class="courses-grid" style="grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+            <div class="courses-grid">
                 <?php foreach ($recommended_courses as $rc):
                     $bg = courseCardBg($rc, $course_gradients);
                     $rc_rating = $rating_map[$rc['id']] ?? null;
@@ -276,7 +278,7 @@ if (!empty($shown_course_ids)) {
             </div>
             <?php endif; ?>
             
-            <div style="background:linear-gradient(90deg, #4361ee 0%, #3a0ca3 100%); border-radius:16px; padding:1.5rem 2rem; display:flex; justify-content:space-between; align-items:center; color:white;">
+            <div style="background:linear-gradient(90deg, #4361ee 0%, #3a0ca3 100%); border-radius:16px; padding:1.5rem 2rem; display:flex; justify-content:space-between; align-items:center; color:white; flex-wrap:wrap; gap:1rem;">
                 <div style="display:flex; align-items:center; gap:1rem;">
                     <div style="width:48px; height:48px; background:rgba(255,255,255,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center;">
                         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>

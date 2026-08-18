@@ -88,7 +88,7 @@ $leaderboard = $stmt_lb->fetchAll();
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 350px; gap: 2rem;">
+    <div class="dash-grid-fixed-right" style="display: grid;  gap: 2rem;">
         
         <!-- Kolom Kiri: Challenges -->
         <div>
@@ -183,7 +183,7 @@ $leaderboard = $stmt_lb->fetchAll();
                 <textarea name="description" id="desc_add" rows="6" style="width:100%; padding:0.75rem; border-radius:8px; border:1px solid var(--dash-border); background:var(--dash-bg); color:var(--dash-text);"></textarea>
             </div>
             
-            <div style="display:grid; grid-template-columns:2fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
+            <div class="dash-grid-sidebar" style="display:grid;  gap:1.5rem; margin-bottom:1.5rem;">
                 <div>
                     <label style="display:block; margin-bottom:0.5rem; color:var(--dash-text); font-size:0.9rem;">Kunci Jawaban Singkat (Auto-Correct)</label>
                     <p style="font-size:0.75rem; color:var(--dash-text-muted); margin-bottom:0.5rem;">Sistem akan memvalidasi jawaban siswa secara persis (case-insensitive).</p>
@@ -222,7 +222,7 @@ $leaderboard = $stmt_lb->fetchAll();
                 <textarea name="description" id="desc_edit" rows="6" style="width:100%; padding:0.75rem; border-radius:8px; border:1px solid var(--dash-border); background:var(--dash-bg); color:var(--dash-text);"></textarea>
             </div>
             
-            <div style="display:grid; grid-template-columns:2fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
+            <div class="dash-grid-sidebar" style="display:grid;  gap:1.5rem; margin-bottom:1.5rem;">
                 <div>
                     <label style="display:block; margin-bottom:0.5rem; color:var(--dash-text); font-size:0.9rem;">Kunci Jawaban Singkat (Auto-Correct)</label>
                     <input type="text" name="correct_answer" id="edit_answer" required style="width:100%; padding:0.75rem; border-radius:8px; border:1px solid var(--dash-border); background:var(--dash-bg); color:var(--dash-text); font-family:monospace;">

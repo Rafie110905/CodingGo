@@ -20,6 +20,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $stmt = $pdo->prepare("INSERT INTO championships (title, description, start_date, end_date, status) VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([$title, $description, $start_date, $end_date, $status]);
+        $championship_id = $pdo->lastInsertId();
+        
+        // Notify all students
+        $notif_title = "Turnamen Baru: " . $title;
+        $notif_msg = "Ikuti Go Championship terbaru dan menangkan XP serta Badge spesial!";
+        $notif_link = "index.php?page=championship_detail&id=" . $championship_id;
+        $stmt_notif = $pdo->prepare("INSERT INTO user_notifications (user_id, type, title, message, link_url) SELECT id, 'system', ?, ?, ? FROM users WHERE role = 'student'");
+        $stmt_notif->execute([$notif_title, $notif_msg, $notif_link]);
         
         header("Location: index.php?page=admin_championship&success=added");
         exit();
@@ -136,7 +144,7 @@ $championships = $stmt->fetchAll();
                 <label style="display:block; margin-bottom:0.5rem; color:var(--dash-text); font-size:0.9rem;">Deskripsi Singkat</label>
                 <textarea name="description" required rows="3" style="width:100%; padding:0.75rem; border-radius:8px; border:1px solid var(--dash-border); background:var(--dash-bg); color:var(--dash-text);"></textarea>
             </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+            <div class="dash-grid-2" style="display:grid;  gap:1rem; margin-bottom:1rem;">
                 <div>
                     <label style="display:block; margin-bottom:0.5rem; color:var(--dash-text); font-size:0.9rem;">Tanggal Mulai</label>
                     <input type="datetime-local" name="start_date" required style="width:100%; padding:0.75rem; border-radius:8px; border:1px solid var(--dash-border); background:var(--dash-bg); color:var(--dash-text);">
@@ -176,7 +184,7 @@ $championships = $stmt->fetchAll();
                 <label style="display:block; margin-bottom:0.5rem; color:var(--dash-text); font-size:0.9rem;">Deskripsi Singkat</label>
                 <textarea name="description" id="edit_description" required rows="3" style="width:100%; padding:0.75rem; border-radius:8px; border:1px solid var(--dash-border); background:var(--dash-bg); color:var(--dash-text);"></textarea>
             </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+            <div class="dash-grid-2" style="display:grid;  gap:1rem; margin-bottom:1rem;">
                 <div>
                     <label style="display:block; margin-bottom:0.5rem; color:var(--dash-text); font-size:0.9rem;">Tanggal Mulai</label>
                     <input type="datetime-local" name="start_date" id="edit_start_date" required style="width:100%; padding:0.75rem; border-radius:8px; border:1px solid var(--dash-border); background:var(--dash-bg); color:var(--dash-text);">
