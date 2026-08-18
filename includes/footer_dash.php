@@ -12,6 +12,109 @@
         </div>
     </div>
 
+    <!-- Modal Broadcast (Reusable) -->
+    <div id="global-broadcast-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center; padding:1rem; backdrop-filter: blur(4px);">
+        <div style="background:var(--dash-bg, #ffffff); width:100%; max-width:420px; border-radius:24px; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); animation: modalZoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative;">
+            <!-- Header background colored by type -->
+            <div id="bc-header-bg" style="height: 120px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); position: absolute; top:0; left:0; right:0; z-index: 1;"></div>
+            
+            <!-- Decorative icon -->
+            <div style="position: relative; z-index: 2; display: flex; justify-content: center; margin-top: 60px;">
+                <div id="bc-icon-wrapper" style="width: 80px; height: 80px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border: 4px solid var(--dash-bg, #fff);">
+                    <!-- icon injected via js -->
+                </div>
+            </div>
+
+            <div style="padding: 1.5rem 2rem 2rem; position: relative; z-index: 2; text-align: center;">
+                <h2 id="bc-title" style="margin: 0 0 1rem 0; color: var(--dash-text); font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">Title</h2>
+                <div id="bc-message" style="color: var(--dash-text-muted); line-height: 1.6; font-size: 0.95rem; margin-bottom: 2rem;">
+                    Message
+                </div>
+                <button id="bc-close-btn" style="width: 100%; background: var(--dash-primary); color: white; border: none; padding: 0.85rem; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 6px -1px rgba(59,130,246,0.4);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 8px -1px rgba(59,130,246,0.5)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px -1px rgba(59,130,246,0.4)';">Mengerti</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function showBroadcastModal(id, title, message, type, isPreview = false) {
+        const modal = document.getElementById('global-broadcast-modal');
+        const headerBg = document.getElementById('bc-header-bg');
+        const iconWrapper = document.getElementById('bc-icon-wrapper');
+        const titleEl = document.getElementById('bc-title');
+        const messageEl = document.getElementById('bc-message');
+        const closeBtn = document.getElementById('bc-close-btn');
+
+        let bgStyle, iconHtml, btnColor, btnShadow;
+
+        if (type === 'success') {
+            bgStyle = 'linear-gradient(135deg, #10b981, #047857)'; // Emerald
+            btnColor = '#10b981';
+            btnShadow = 'rgba(16,185,129,0.4)';
+            iconHtml = '<svg fill="none" viewBox="0 0 24 24" stroke="#10b981" width="40" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+        } else if (type === 'warning') {
+            bgStyle = 'linear-gradient(135deg, #f59e0b, #b45309)'; // Amber
+            btnColor = '#f59e0b';
+            btnShadow = 'rgba(245,158,11,0.4)';
+            iconHtml = '<svg fill="none" viewBox="0 0 24 24" stroke="#f59e0b" width="40" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>';
+        } else {
+            bgStyle = 'linear-gradient(135deg, #3b82f6, #1d4ed8)'; // Blue
+            btnColor = '#3b82f6';
+            btnShadow = 'rgba(59,130,246,0.4)';
+            iconHtml = '<svg fill="none" viewBox="0 0 24 24" stroke="#3b82f6" width="40" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+        }
+
+        headerBg.style.background = bgStyle;
+        iconWrapper.innerHTML = iconHtml;
+        titleEl.textContent = title;
+        
+        // Convert newlines to br
+        messageEl.innerHTML = message.replace(/\n/g, '<br>');
+        
+        closeBtn.style.background = btnColor;
+        closeBtn.style.boxShadow = `0 4px 6px -1px ${btnShadow}`;
+        closeBtn.onmouseover = () => { closeBtn.style.transform = 'translateY(-2px)'; closeBtn.style.boxShadow = `0 6px 8px -1px ${btnShadow}`; };
+        closeBtn.onmouseout = () => { closeBtn.style.transform = 'translateY(0)'; closeBtn.style.boxShadow = `0 4px 6px -1px ${btnShadow}`; };
+
+        closeBtn.onclick = () => {
+            modal.style.display = 'none';
+            if (!isPreview && id) {
+                fetch('api/broadcast_read.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({broadcast_id: id})
+                }).catch(e => console.error(e));
+            }
+        };
+
+        modal.style.display = 'flex';
+    }
+    </script>
+
+    <?php
+    // Fetch Global Broadcast for actual display
+    if (isset($pdo) && isset($_SESSION['user_id'])) {
+        $stmt_broadcast = $pdo->prepare("
+            SELECT * FROM broadcasts 
+            WHERE is_active = 1 
+            AND (
+                display_mode = 'always' 
+                OR (display_mode = 'once' AND id NOT IN (SELECT broadcast_id FROM broadcast_views WHERE user_id = ?))
+            )
+            ORDER BY created_at DESC LIMIT 1
+        ");
+        $stmt_broadcast->execute([$_SESSION['user_id']]);
+        $active_broadcast = $stmt_broadcast->fetch();
+        
+        if ($active_broadcast) {
+            $b_id = $active_broadcast['id'];
+            $b_title = json_encode($active_broadcast['title']);
+            $b_message = json_encode($active_broadcast['message']);
+            $b_type = json_encode($active_broadcast['type']);
+            echo "<script>showBroadcastModal($b_id, $b_title, $b_message, $b_type);</script>";
+        }
+    }
+    ?>
+
     <script>
         // Daftar file GIF animasi banner yang tersedia untuk dipilih user (taruh semua filenya di src/img/)
         // User memilih sendiri banner mereka lewat halaman Pengaturan Profil setelah unlock 10 badge

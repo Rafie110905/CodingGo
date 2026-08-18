@@ -41,6 +41,11 @@ function ensureDatabaseBootstrap(PDO $pdo): void {
             // Update enum
             $pdo->exec("ALTER TABLE gamification_perks MODIFY COLUMN type ENUM('avatar_frame', 'name_effect', 'profile_effect', 'banner_gif', 'card_border', 'card_background', 'cursor_effect', 'badge_effect', 'entrance_anim') NOT NULL");
         }
+
+        $has_display_mode = $pdo->query("SHOW COLUMNS FROM broadcasts LIKE 'display_mode'")->fetch();
+        if (!$has_display_mode) {
+            $pdo->exec("ALTER TABLE broadcasts ADD COLUMN display_mode ENUM('once', 'always') DEFAULT 'once' AFTER type");
+        }
     } catch (PDOException $e) {
     }
 

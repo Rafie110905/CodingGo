@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = $_POST['user_id'] ?? 0;
     
     // Jangan izinkan admin mengubah dirinya sendiri dari form ini untuk mencegah terkunci
-    if ($user_id != $_SESSION['user_id']) {
+    if ($user_id != $_SESSION['user_id'] && $user_id != 0) {
         if ($action === 'set_admin') {
             $stmt = $pdo->prepare("UPDATE users SET role = 'admin' WHERE id = ?");
             $stmt->execute([$user_id]);
@@ -26,6 +26,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($action === 'delete') {
             $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
             $stmt->execute([$user_id]);
+        }
+    }
+
+    if ($action === 'add_user') {
+        $name = trim($_POST['name'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $role = $_POST['role'] ?? 'user';
+        
+        if ($name && $email && $password) {
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            if ($stmt->rowCount() == 0) {
+                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
+                $stmt->execute([$name, $email, $hashed_password, $role]);
+            }
         }
     }
     // Refresh halaman untuk melihat perubahan
@@ -44,7 +61,7 @@ $all_users = $stmt->fetchAll();
             <h1 style="font-size: 1.8rem; color: var(--dash-text); margin-bottom: 0.5rem;">Manage Users (RBAC)</h1>
             <p style="color: var(--dash-text-muted);">Kelola data pengguna, hak akses admin, dan tingkat keamanan platform.</p>
         </div>
-        <button style="background: var(--dash-primary); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+        <button onclick="document.getElementById('addUserModal').style.display='flex'" style="background: var(--dash-primary); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
             Tambah User Manual
         </button>
@@ -130,5 +147,46 @@ $all_users = $stmt->fetchAll();
                 </tbody>
             </table>
         </div>
+    </div>
+</div>
+
+<!-- Modal Tambah User -->
+<div id="addUserModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: var(--dash-bg, #fff); width: 100%; max-width: 500px; border-radius: 16px; padding: 2rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative;">
+        <button onclick="document.getElementById('addUserModal').style.display='none'" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--dash-text-muted);">&times;</button>
+        
+        <h2 style="margin-top: 0; margin-bottom: 1.5rem; color: var(--dash-text); font-size: 1.5rem;">Tambah User Baru</h2>
+        
+        <form method="POST" action="">
+            <input type="hidden" name="action" value="add_user">
+            
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--dash-text); font-size: 0.9rem;">Nama Lengkap</label>
+                <input type="text" name="name" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--dash-border); border-radius: 8px; font-family: inherit; box-sizing: border-box; background: var(--dash-bg); color: var(--dash-text);">
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--dash-text); font-size: 0.9rem;">Email</label>
+                <input type="email" name="email" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--dash-border); border-radius: 8px; font-family: inherit; box-sizing: border-box; background: var(--dash-bg); color: var(--dash-text);">
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--dash-text); font-size: 0.9rem;">Password</label>
+                <input type="password" name="password" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--dash-border); border-radius: 8px; font-family: inherit; box-sizing: border-box; background: var(--dash-bg); color: var(--dash-text);">
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--dash-text); font-size: 0.9rem;">Role</label>
+                <select name="role" style="width: 100%; padding: 0.75rem; border: 1px solid var(--dash-border); border-radius: 8px; font-family: inherit; box-sizing: border-box; background: var(--dash-bg); color: var(--dash-text);">
+                    <option value="user">User Biasa</option>
+                    <option value="admin">Administrator</option>
+                </select>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" onclick="document.getElementById('addUserModal').style.display='none'" style="padding: 0.75rem 1.5rem; border: 1px solid var(--dash-border); background: transparent; border-radius: 8px; font-weight: 600; cursor: pointer; color: var(--dash-text);">Batal</button>
+                <button type="submit" style="padding: 0.75rem 1.5rem; border: none; background: var(--dash-primary); color: white; border-radius: 8px; font-weight: 600; cursor: pointer;">Simpan User</button>
+            </div>
+        </form>
     </div>
 </div>

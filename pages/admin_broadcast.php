@@ -16,21 +16,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $title = trim($_POST['title']);
         $message = trim($_POST['message']);
         $type = $_POST['type'];
+        $display_mode = $_POST['display_mode'] ?? 'once';
         
-        $stmt = $pdo->prepare("INSERT INTO broadcasts (title, message, type, is_active) VALUES (?, ?, ?, 1)");
-        $stmt->execute([$title, $message, $type]);
-        $success_message = "Broadcast berhasil dikirim!";
+        $stmt = $pdo->prepare("INSERT INTO broadcasts (title, message, type, display_mode, is_active) VALUES (?, ?, ?, ?, 1)");
+        $stmt->execute([$title, $message, $type, $display_mode]);
+        $_SESSION['broadcast_msg'] = "Broadcast berhasil dikirim!";
     } elseif ($_POST['action'] === 'toggle') {
         $id = $_POST['broadcast_id'];
         $stmt = $pdo->prepare("UPDATE broadcasts SET is_active = NOT is_active WHERE id = ?");
         $stmt->execute([$id]);
-        $success_message = "Status broadcast berhasil diubah!";
+        $_SESSION['broadcast_msg'] = "Status broadcast berhasil diubah!";
     } elseif ($_POST['action'] === 'delete') {
         $id = $_POST['broadcast_id'];
         $stmt = $pdo->prepare("DELETE FROM broadcasts WHERE id = ?");
         $stmt->execute([$id]);
-        $success_message = "Broadcast berhasil dihapus!";
+        $_SESSION['broadcast_msg'] = "Broadcast berhasil dihapus!";
     }
+    
+    // Redirect to prevent form resubmission on refresh
+    header("Location: index.php?page=admin_broadcast");
+    exit();
+}
+
+$success_message = '';
+if (isset($_SESSION['broadcast_msg'])) {
+    $success_message = $_SESSION['broadcast_msg'];
+    unset($_SESSION['broadcast_msg']);
 }
 
 // Get all broadcasts
@@ -73,12 +84,20 @@ $broadcasts = $stmt->fetchAll();
                     <textarea name="message" required rows="4" placeholder="Ketik pesan yang ingin disampaikan..." style="width: 100%; padding: 0.75rem; border: 1px solid var(--dash-border); border-radius: 8px; background: var(--dash-bg); color: var(--dash-text); font-family: inherit; resize:vertical;"></textarea>
                 </div>
                 
-                <div style="margin-bottom: 1.5rem;">
+                <div style="margin-bottom: 1rem;">
                     <label style="display: block; margin-bottom: 0.5rem; font-size:0.9rem; font-weight:600; color:var(--dash-text);">Tipe Pesan (Warna & Ikon)</label>
                     <select name="type" style="width: 100%; padding: 0.75rem; border: 1px solid var(--dash-border); border-radius: 8px; background: var(--dash-bg); color: var(--dash-text);">
                         <option value="info">🔵 Informasi (Info)</option>
                         <option value="success">🟢 Sukses (Berita Baik)</option>
                         <option value="warning">🟠 Peringatan (Warning)</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-size:0.9rem; font-weight:600; color:var(--dash-text);">Sifat Tampil</label>
+                    <select name="display_mode" style="width: 100%; padding: 0.75rem; border: 1px solid var(--dash-border); border-radius: 8px; background: var(--dash-bg); color: var(--dash-text);">
+                        <option value="once">Sekali Saja (Hilang setelah diklik Mengerti)</option>
+                        <option value="always">Selalu Tampil (Terus muncul selama berstatus Aktif)</option>
                     </select>
                 </div>
                 
@@ -139,12 +158,22 @@ $broadcasts = $stmt->fetchAll();
                                         $stmt_views->execute([$b['id']]);
                                         $views = $stmt_views->fetchColumn();
                                     ?>
-                                    <div style="font-size:0.75rem; color:var(--dash-primary); margin-top:8px; font-weight:600;">
-                                        Dilihat oleh <?php echo $views; ?> siswa
+                                    <div style="font-size:0.75rem; color:var(--dash-primary); margin-top:8px; font-weight:600; display:flex; align-items:center; gap:8px;">
+                                        <span>Dilihat oleh <?php echo $views; ?> siswa</span>
+                                        <span style="color:var(--dash-border);">|</span>
+                                        <span style="color: <?php echo $b['display_mode'] === 'always' ? '#ef4444' : '#64748b'; ?>;">
+                                            Sifat: <?php echo $b['display_mode'] === 'always' ? 'Selalu Tampil' : 'Sekali Saja'; ?>
+                                        </span>
                                     </div>
                                 </td>
                                 <td style="padding: 1rem; text-align:right; vertical-align: top;">
                                     <div style="display:flex; justify-content:flex-end; gap:8px;">
+                                        <!-- Preview -->
+                                        <button type="button" title="Tampilkan/Preview" onclick='showBroadcastModal(<?php echo $b['id']; ?>, <?php echo htmlspecialchars(json_encode($b['title']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode($b['message']), ENT_QUOTES, 'UTF-8'); ?>, "<?php echo $b['type']; ?>", true)' style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+                                            Tampilkan
+                                        </button>
+                                        
                                         <!-- Toggle Status -->
                                         <form method="POST" style="margin:0;">
                                             <input type="hidden" name="action" value="toggle">
